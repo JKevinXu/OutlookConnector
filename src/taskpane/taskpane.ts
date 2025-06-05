@@ -6,23 +6,56 @@
 /* global document, Office */
 
 // Check if we're running in Office context or standalone browser
-const isInOfficeContext = typeof Office !== 'undefined' && Office.context;
+const isInOfficeContext = typeof Office !== 'undefined' && 
+  Office.context && 
+  Office.context.mailbox && 
+  Office.context.host;
+
+console.log("🔧 Script loaded. Office context:", Office?.context || "undefined");
+console.log("🔍 Is in real Office context:", isInOfficeContext);
 
 if (isInOfficeContext) {
   Office.onReady((info) => {
+    console.log("📧 Office.onReady fired", info);
     if (info.host === Office.HostType.Outlook) {
       document.getElementById("sideload-msg").style.display = "none";
       document.getElementById("app-body").style.display = "flex";
-      document.getElementById("run").onclick = run;
+      
+      const button = document.getElementById("run");
+      console.log("🔘 Button element:", button);
+      if (button) {
+        button.onclick = run;
+        console.log("✅ Button click handler attached (Office mode)");
+      } else {
+        console.error("❌ Button not found!");
+      }
     }
   });
 } else {
   // Standalone browser mode for testing
+  console.log("🌐 Setting up standalone browser mode");
   document.addEventListener('DOMContentLoaded', () => {
+    console.log("📄 DOM Content Loaded");
     console.log("🔧 Running in standalone browser mode for testing");
-    document.getElementById("sideload-msg").style.display = "none";
-    document.getElementById("app-body").style.display = "flex";
-    document.getElementById("run").onclick = runStandalone;
+    
+    const sideloadMsg = document.getElementById("sideload-msg");
+    const appBody = document.getElementById("app-body");
+    const button = document.getElementById("run");
+    
+    console.log("Elements found:", { sideloadMsg, appBody, button });
+    
+    if (sideloadMsg) sideloadMsg.style.display = "none";
+    if (appBody) appBody.style.display = "flex";
+    
+    if (button) {
+      button.onclick = (e) => {
+        console.log("🔘 Button clicked!", e);
+        runStandalone();
+      };
+      console.log("✅ Button click handler attached (standalone mode)");
+    } else {
+      console.error("❌ Button not found!");
+    }
   });
 }
 
@@ -85,12 +118,20 @@ export async function run() {
 
 // Standalone testing function (simulates Office context)
 export async function runStandalone() {
+  console.log("🚀 runStandalone() called!");
   console.log("🔧 Running standalone test mode");
   
   let insertAt = document.getElementById("item-subject");
+  console.log("📍 Insert target element:", insertAt);
+  
+  if (!insertAt) {
+    console.error("❌ Cannot find item-subject element!");
+    return;
+  }
   
   // Clear previous content
   insertAt.innerHTML = "";
+  console.log("🧹 Cleared previous content");
   
   // Simulate email data
   const mockEmailSubject = "Demo: Meeting Regarding Q1 Budget Planning";
@@ -144,18 +185,24 @@ Project Manager`;
   
   // Show demo instructions
   let demoInfo = document.createElement("div");
-  demoInfo.style.backgroundColor = "#f0f8ff";
-  demoInfo.style.padding = "10px";
-  demoInfo.style.marginTop = "10px";
-  demoInfo.style.border = "1px solid #0078d4";
+  demoInfo.className = "demo-info";
   demoInfo.innerHTML = `
-    <h4>🔧 Demo Mode Active</h4>
-    <p>This is a standalone browser test. In a real Outlook add-in:</p>
-    <ul>
-      <li>📧 Email subject and body would come from the selected message</li>
-      <li>🔄 This would run inside Outlook's task pane</li>
-      <li>🤖 AI summarization would work with real email content</li>
-    </ul>
+    <h4 class="demo-title">🔧 Demo Mode Active</h4>
+    <p class="demo-description">This is a standalone browser test. In a real Outlook add-in:</p>
+    <div class="demo-list">
+      <div class="demo-item">
+        <span class="demo-bullet">•</span>
+        <span class="demo-text">📧 Email subject and body would come from the selected message</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-bullet">•</span>
+        <span class="demo-text">🔄 This would run inside Outlook's task pane</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-bullet">•</span>
+        <span class="demo-text">🤖 AI summarization would work with real email content</span>
+      </div>
+    </div>
   `;
   insertAt.appendChild(demoInfo);
 }
