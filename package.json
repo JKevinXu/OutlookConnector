@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "core-js": "^3.36.0",
+    "crypto-js": "^4.2.0",
+    "oidc-client": "^1.11.5",
     "regenerator-runtime": "^0.14.1"
   },
   "devDependencies": {

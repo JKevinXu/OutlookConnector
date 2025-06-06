@@ -32,8 +32,11 @@
     <!-- Sideload message (hidden when app loads) -->
     <section id="sideload-msg" class="sideload-section" style="display: none;">
         <div class="sideload-content">
-            <h2 class="ms-font-l">📧 Please open an email message to start</h2>
-            <p class="ms-font-s">This add-in will analyze and summarize email content using AI.</p>
+            <h2 class="ms-font-l">🔐 Please sign in to continue</h2>
+            <p class="ms-font-s">Authentication is required to use the Seller Email Assistant.</p>
+            <button id="login-btn" class="ms-Button ms-Button--primary" style="margin-top: 15px;">
+                <span class="ms-Button-label">🔐 Sign In</span>
+            </button>
         </div>
     </section>
 
@@ -73,18 +76,21 @@
         .header-content {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 12px;
+            width: 100%;
         }
 
         .header-content h1 {
             margin: 0;
             font-size: 24px;
             font-weight: 600;
+            flex: 1;
         }
 
         .header-icon {
             font-size: 28px;
+            flex-shrink: 0;
         }
 
         .sideload-section {
@@ -315,6 +321,373 @@
             
             .header-content h1 {
                 font-size: 20px;
+            }
+        }
+
+        /* Authentication UI Styles */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            color: white;
+        }
+
+        .user-avatar {
+            font-size: 20px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 20px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Login button in sideload message */
+        .sideload-content .ms-Button {
+            font-size: 16px;
+            padding: 12px 24px;
+            min-width: 180px;
+            background-color: #0078d4;
+            border-color: #0078d4;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .sideload-content .ms-Button:hover {
+            background-color: #106ebe;
+            border-color: #106ebe;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 110, 190, 0.3);
+        }
+
+        /* Loading and authentication states */
+        .auth-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #0078d4;
+            font-style: italic;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .auth-loading::before {
+            content: "🔄";
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* User Identity Panel Styles */
+        .user-identity-panel {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 14px;
+        }
+
+        .user-identity-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .user-identity-header h3 {
+            margin: 0;
+            color: #0078d4;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .identity-status {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .identity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #0078d4;
+        }
+
+        .identity-label {
+            font-weight: 600;
+            color: #323130;
+            min-width: 120px;
+        }
+
+        .identity-value {
+            color: #605e5c;
+            text-align: right;
+            word-break: break-all;
+            margin-left: 10px;
+        }
+
+        .token-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .token-section h4 {
+            margin: 0 0 15px 0;
+            color: #0078d4;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .token-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f1f3f4;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .token-label {
+            font-weight: 500;
+            color: #323130;
+        }
+
+        .token-value {
+            color: #605e5c;
+            margin: 0 10px;
+        }
+
+        .token-btn {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .token-btn:hover {
+            background-color: #106ebe;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .auth-actions .ms-Button {
+            flex: 1;
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .success-message {
+            background-color: #f0f9f4;
+            border: 1px solid #86efac;
+            color: #059669;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 20px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* JWT Claims Styles */
+        .jwt-claims-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .jwt-claims-section h4 {
+            margin: 0 0 15px 0;
+            color: #0078d4;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .jwt-claims-section h5 {
+            margin: 15px 0 10px 0;
+            color: #323130;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .jwt-claims-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .jwt-claim-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 12px;
+            background: #fafbfc;
+            border-radius: 6px;
+            border-left: 3px solid #0078d4;
+            font-size: 13px;
+        }
+
+        .jwt-label {
+            font-weight: 600;
+            color: #323130;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .jwt-value {
+            color: #605e5c;
+            text-align: right;
+            margin-left: 10px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .jwt-raw-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .jwt-raw-textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            background: white;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .jwt-raw-textarea:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+        }
+
+        /* Responsive design for JWT claims */
+        @media (max-width: 600px) {
+            .user-identity-panel {
+                margin: 15px 10px;
+                padding: 20px 15px;
+            }
+            
+            .identity-item {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            
+            .identity-value {
+                text-align: left;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+            
+            .token-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .auth-actions {
+                flex-direction: column;
+            }
+            
+            .jwt-claim-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .jwt-value {
+                text-align: left;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+            
+            .jwt-raw-textarea {
+                height: 150px;
+                font-size: 10px;
             }
         }
     </style>

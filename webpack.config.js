@@ -90,6 +90,12 @@ module.exports = async (env, options) => {
         options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
       },
       port: process.env.npm_package_config_dev_server_port || 3000,
+      historyApiFallback: {
+        rewrites: [
+          { from: /^\/taskpane\/callback$/, to: '/taskpane.html' },
+          { from: /./, to: '/taskpane.html' }
+        ]
+      },
     },
   };
 

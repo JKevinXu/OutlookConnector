@@ -5,8 +5,12 @@
 
 /* global document, Office */
 
+import { authService } from '../auth/AuthService';
+import { UserProfile } from '../types/auth';
+
 // Check if we're running in Office context or standalone browser
 let isInOfficeContext = false;
+let currentUser: UserProfile | null = null;
 
 try {
   isInOfficeContext = typeof Office !== 'undefined' && 
@@ -21,22 +25,209 @@ try {
   isInOfficeContext = false;
 }
 
+// Handle callback routing
+function handleCallbackRouting(): boolean {
+  const currentPath = window.location.pathname;
+  const hash = window.location.hash;
+  console.log("🌍 Current path:", currentPath);
+  console.log("🔗 Current hash:", hash);
+  
+  if (currentPath === '/taskpane/callback' || hash.includes('id_token=')) {
+    console.log("🎯 Processing authentication callback...");
+    
+    // Let oidc-client handle the callback
+    authService.handleCallback().then((user) => {
+      console.log("✅ Callback processed successfully:", user);
+      
+      // Redirect to main taskpane
+      const baseUrl = `${window.location.protocol}//${window.location.host}`;
+      const targetUrl = `${baseUrl}/taskpane.html`;
+      console.log("🔄 Redirecting to:", targetUrl);
+      
+      // Use replace to avoid adding to history
+      window.location.replace(targetUrl);
+    }).catch((error) => {
+      console.error("❌ Callback processing failed:", error);
+      showError(`Authentication failed: ${error.message}`);
+      
+      // Still redirect to main page on error
+      const baseUrl = `${window.location.protocol}//${window.location.host}`;
+      const targetUrl = `${baseUrl}/taskpane.html`;
+      setTimeout(() => {
+        window.location.replace(targetUrl);
+      }, 2000);
+    });
+    
+    return true; // Indicate we're processing a callback
+  }
+  
+  return false; // Not a callback URL
+}
+
+// Initialize authentication when the page loads
+async function initializeAuth() {
+  try {
+    console.log("🔐 Initializing authentication...");
+    await authService.initialize();
+    
+    // Check if user is already authenticated
+    const user = await authService.getUser();
+    console.log("👤 Current user:", user);
+    
+    // Update UI based on authentication state
+    updateAuthUI();
+    
+    // If authenticated, immediately display user identity
+    if (user) {
+      console.log("✅ User authenticated, displaying identity...");
+      displayUserIdentity();
+    }
+    
+    console.log("✅ Authentication initialized successfully");
+  } catch (error) {
+    console.error("❌ Authentication initialization failed:", error);
+    showError("Authentication setup failed: " + error.message);
+  }
+}
+
+function updateAuthUI() {
+  const isAuthenticated = authService.isAuthenticated();
+  console.log("🎨 Updating auth UI. Authenticated:", isAuthenticated);
+
+  // Update header to show user info or login
+  updateHeader(isAuthenticated);
+  
+  // Show/hide main functionality based on auth state
+  const appBody = document.getElementById("app-body");
+  const sideloadMsg = document.getElementById("sideload-msg");
+  
+  if (isAuthenticated) {
+    if (sideloadMsg) sideloadMsg.style.display = "none";
+    if (appBody) appBody.style.display = "flex";
+    
+    // Display user identity in the panel
+    console.log("🆔 Displaying user identity panel...");
+    displayUserIdentity();
+  } else {
+    if (appBody) appBody.style.display = "none";
+    if (sideloadMsg) {
+      sideloadMsg.style.display = "block";
+      
+      // Show login button
+      const loginBtn = document.getElementById("login-btn");
+      if (loginBtn) {
+        loginBtn.style.display = "block";
+        loginBtn.onclick = () => {
+          console.log("🔑 Login button clicked");
+          authService.login().catch(error => {
+            console.error("❌ Login failed:", error);
+            showError("Login failed: " + error.message);
+          });
+        };
+      }
+    }
+    
+    // Remove any existing user identity panel
+    const existingUserInfo = document.getElementById("user-identity-section");
+    if (existingUserInfo) {
+      existingUserInfo.remove();
+    }
+  }
+}
+
+function updateHeader(isAuthenticated: boolean) {
+  const headerContent = document.querySelector('.header-content');
+  if (!headerContent) return;
+
+  if (isAuthenticated && currentUser) {
+    headerContent.innerHTML = `
+      <span class="header-icon">🛒</span>
+      <h1 class="ms-font-xl">Seller Email Assistant</h1>
+      <div class="user-info">
+        <span class="user-avatar">👤</span>
+        <span class="user-name">${currentUser.name}</span>
+        <button id="logout-btn" class="ms-Button ms-Button--default logout-btn">Sign Out</button>
+      </div>
+    `;
+
+    // Add logout button handler
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.onclick = handleLogout;
+    }
+  } else {
+    headerContent.innerHTML = `
+      <span class="header-icon">🛒</span>
+      <h1 class="ms-font-xl">Seller Email Assistant</h1>
+    `;
+  }
+}
+
+async function handleLogin() {
+  try {
+    console.log("🚀 Login button clicked");
+    await authService.login();
+  } catch (error) {
+    console.error("❌ Login failed:", error);
+    showError("Login failed. Please try again.");
+  }
+}
+
+async function handleLogout() {
+  try {
+    console.log("🚪 Logout button clicked");
+    await authService.logout();
+  } catch (error) {
+    console.error("❌ Logout failed:", error);
+    showError("Logout failed. Please try again.");
+  }
+}
+
+function showError(message: string) {
+  const errorDiv = document.createElement("div");
+  errorDiv.className = "error-message";
+  errorDiv.style.cssText = `
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 10px 20px;
+    font-size: 14px;
+  `;
+  errorDiv.textContent = message;
+  
+  const container = document.getElementById("app-body") || document.body;
+  container.insertBefore(errorDiv, container.firstChild);
+  
+  // Remove error after 5 seconds
+  setTimeout(() => {
+    if (errorDiv.parentNode) {
+      errorDiv.parentNode.removeChild(errorDiv);
+    }
+  }, 5000);
+}
+
 if (isInOfficeContext) {
   try {
     Office.onReady((info) => {
       console.log("📧 Office.onReady fired", info);
       if (info.host === Office.HostType.Outlook) {
-        document.getElementById("sideload-msg").style.display = "none";
-        document.getElementById("app-body").style.display = "flex";
-        
-        const button = document.getElementById("run");
-        console.log("🔘 Button element:", button);
-        if (button) {
-          button.onclick = run;
-          console.log("✅ Button click handler attached (Office mode)");
-        } else {
-          console.error("❌ Button not found!");
+        // Check if this is a callback URL first
+        if (handleCallbackRouting()) {
+          return; // Exit early if processing callback
         }
+        
+        initializeAuth().then(() => {
+          const button = document.getElementById("run");
+          console.log("🔘 Button element:", button);
+          if (button) {
+            button.onclick = run;
+            console.log("✅ Button click handler attached (Office mode)");
+          } else {
+            console.error("❌ Button not found!");
+          }
+        });
       }
     });
   } catch (error) {
@@ -50,32 +241,34 @@ if (isInOfficeContext) {
       console.log("📄 DOM Content Loaded");
       console.log("🔧 Running in standalone browser mode for testing");
       
-      try {
-        const sideloadMsg = document.getElementById("sideload-msg");
-        const appBody = document.getElementById("app-body");
-        const button = document.getElementById("run");
-        
-        console.log("Elements found:", { sideloadMsg, appBody, button });
-        
-        if (sideloadMsg) sideloadMsg.style.display = "none";
-        if (appBody) appBody.style.display = "flex";
-        
-        if (button) {
-          button.onclick = (e) => {
-            console.log("🔘 Button clicked!", e);
-            try {
-              runStandalone();
-            } catch (error) {
-              console.error("❌ Error in runStandalone:", error);
-            }
-          };
-          console.log("✅ Button click handler attached (standalone mode)");
-        } else {
-          console.error("❌ Button not found!");
-        }
-      } catch (error) {
-        console.error("❌ Error setting up DOM elements:", error);
+      // Check if this is a callback URL first
+      if (handleCallbackRouting()) {
+        return; // Exit early if processing callback
       }
+      
+      initializeAuth().then(() => {
+        try {
+          const button = document.getElementById("run");
+          
+          console.log("Elements found:", { button });
+          
+          if (button) {
+            button.onclick = (e) => {
+              console.log("🔘 Button clicked!", e);
+              try {
+                runStandalone();
+              } catch (error) {
+                console.error("❌ Error in runStandalone:", error);
+              }
+            };
+            console.log("✅ Button click handler attached (standalone mode)");
+          } else {
+            console.error("❌ Button not found!");
+          }
+        } catch (error) {
+          console.error("❌ Error setting up DOM elements:", error);
+        }
+      });
     });
   } catch (error) {
     console.error("❌ Error setting up DOMContentLoaded listener:", error);
@@ -86,6 +279,12 @@ export async function run() {
   /**
    * Enhanced Outlook add-in with LLM email summarization
    */
+  
+  // Check authentication first
+  if (!authService.isAuthenticated()) {
+    showError("Please sign in to analyze emails");
+    return;
+  }
 
   const item = Office.context.mailbox.item;
   let insertAt = document.getElementById("item-subject");
@@ -157,6 +356,12 @@ export async function run() {
 export async function runStandalone() {
   console.log("🚀 runStandalone() called!");
   console.log("🔧 Running standalone test mode");
+  
+  // Check authentication first
+  if (!authService.isAuthenticated()) {
+    showError("Please sign in to analyze emails");
+    return;
+  }
   
   let insertAt = document.getElementById("item-subject");
   console.log("📍 Insert target element:", insertAt);
@@ -255,6 +460,12 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
 }
 
 async function summarizeEmail(emailContent: string, container: HTMLElement) {
+  // Check authentication before processing
+  if (!authService.isAuthenticated()) {
+    showError("Please sign in to use AI summarization");
+    return;
+  }
+
   // Show loading state
   let loadingMsg = document.createElement("p");
   loadingMsg.textContent = "🔄 Summarizing email with AI...";
@@ -262,8 +473,12 @@ async function summarizeEmail(emailContent: string, container: HTMLElement) {
   container.appendChild(loadingMsg);
 
   try {
+    // Get user info for personalized experience
+    const user = await authService.getUser();
+    const userContext = user ? `\nAnalyzing for user: ${user.name} (${user.email})` : "";
+    
     // Call OpenAI API (you'll need to add your API key)
-    const summary = await callLLMApi(emailContent);
+    const summary = await callLLMApi(emailContent + userContext);
     
     // Remove loading message
     const loading = document.getElementById("loading-msg");
@@ -308,6 +523,9 @@ async function callLLMApi(emailContent: string): Promise<string> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    const user = await authService.getUser();
+    const userInfo = user ? `\n\n*Personalized for ${user.name}*` : "";
+    
     return `🤖 **AI Summary** (Demo Mode):
 
 **Email Type:** FBA Onboarding Inquiry
@@ -344,7 +562,7 @@ async function callLLMApi(emailContent: string): Promise<string> {
 
 **Next Steps:** Schedule consultation call to discuss onboarding process
 
-*To enable real AI analysis: Add your OpenAI/Claude/other LLM API key to the code*`;
+*To enable real AI analysis: Add your OpenAI/Claude/other LLM API key to the code*${userInfo}`;
   }
   
   const response = await fetch(API_URL, {
@@ -427,3 +645,252 @@ async function callAzureOpenAI(emailContent: string): Promise<string> {
   return data.choices[0].message.content;
 }
 */
+
+async function displayUserIdentity() {
+  const resultsContainer = document.getElementById("results-container");
+  if (!resultsContainer) return;
+
+  try {
+    const user = await authService.getUser();
+    const accessToken = await authService.getAccessToken();
+    const idToken = await authService.getIdToken();
+    
+    if (!user) return;
+
+    // Decode JWT claims if ID token is available
+    let jwtClaims = null;
+    if (idToken) {
+      jwtClaims = decodeJWT(idToken);
+    }
+
+    // Clear previous user info
+    const existingUserInfo = document.getElementById("user-identity-section");
+    if (existingUserInfo) {
+      existingUserInfo.remove();
+    }
+
+    // Create user identity section
+    const userIdentitySection = document.createElement("div");
+    userIdentitySection.id = "user-identity-section";
+    userIdentitySection.className = "user-identity-panel";
+    
+    userIdentitySection.innerHTML = `
+      <div class="user-identity-header">
+        <h3>👤 User Identity Information</h3>
+        <span class="identity-status">✅ Authenticated</span>
+      </div>
+      
+      <div class="identity-grid">
+        <div class="identity-item">
+          <span class="identity-label">📧 Email:</span>
+          <span class="identity-value">${user.email || 'Not provided'}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">👤 Name:</span>
+          <span class="identity-value">${user.name}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">🆔 Subject ID:</span>
+          <span class="identity-value">${user.sub}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">✅ Email Verified:</span>
+          <span class="identity-value">${user.email_verified ? '✅ Yes' : '❌ No'}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">🏢 Organization:</span>
+          <span class="identity-value">${user.org || 'Not provided'}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">🎭 Roles:</span>
+          <span class="identity-value">${user.roles && user.roles.length > 0 ? user.roles.join(', ') : 'No roles assigned'}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">⏰ Issued At:</span>
+          <span class="identity-value">${new Date(user.iat * 1000).toLocaleString()}</span>
+        </div>
+        
+        <div class="identity-item">
+          <span class="identity-label">⏳ Expires At:</span>
+          <span class="identity-value">${new Date(user.exp * 1000).toLocaleString()}</span>
+        </div>
+      </div>
+      
+      ${jwtClaims ? `
+      <div class="jwt-claims-section">
+        <h4>🔍 Raw JWT Claims</h4>
+        <div class="jwt-claims-container">
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Audience (aud):</span>
+            <span class="jwt-value">${jwtClaims.aud || 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Subject (sub):</span>
+            <span class="jwt-value">${jwtClaims.sub || 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Issuer (iss):</span>
+            <span class="jwt-value">${jwtClaims.iss || 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Not Before (nbf):</span>
+            <span class="jwt-value">${jwtClaims.nbf ? formatTimestamp(jwtClaims.nbf) : 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Issued At (iat):</span>
+            <span class="jwt-value">${jwtClaims.iat ? formatTimestamp(jwtClaims.iat) : 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Expires At (exp):</span>
+            <span class="jwt-value">${jwtClaims.exp ? formatTimestamp(jwtClaims.exp) : 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Auth Time:</span>
+            <span class="jwt-value">${jwtClaims.auth_time ? formatTimestamp(jwtClaims.auth_time) : 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Nonce:</span>
+            <span class="jwt-value">${jwtClaims.nonce || 'N/A'}</span>
+          </div>
+          <div class="jwt-claim-item">
+            <span class="jwt-label">JWT ID (jti):</span>
+            <span class="jwt-value">${jwtClaims.jti || 'N/A'}</span>
+          </div>
+          ${jwtClaims['https://aws.amazon.com/tags'] ? `
+          <div class="jwt-claim-item">
+            <span class="jwt-label">AWS Tags:</span>
+            <span class="jwt-value">${JSON.stringify(jwtClaims['https://aws.amazon.com/tags'], null, 2)}</span>
+          </div>
+          ` : ''}
+          <div class="jwt-claim-item">
+            <span class="jwt-label">Token Purpose:</span>
+            <span class="jwt-value">${jwtClaims.federate_token_purpose || 'N/A'}</span>
+          </div>
+        </div>
+        
+        <div class="jwt-raw-section">
+          <h5>📋 Complete JWT Payload</h5>
+          <textarea class="jwt-raw-textarea" readonly>${JSON.stringify(jwtClaims, null, 2)}</textarea>
+          <button class="token-btn" onclick="copyToClipboard('${JSON.stringify(jwtClaims, null, 2).replace(/'/g, "\\'")}')">📋 Copy Claims</button>
+        </div>
+      </div>
+      ` : ''}
+      
+      <div class="token-section">
+        <h4>🔑 Token Information</h4>
+        <div class="token-item">
+          <span class="token-label">Access Token:</span>
+          <span class="token-value">${accessToken ? '✅ Present' : '❌ Not available'}</span>
+          ${accessToken ? `<button class="token-btn" onclick="copyToClipboard('${accessToken}')">📋 Copy</button>` : ''}
+        </div>
+        <div class="token-item">
+          <span class="token-label">ID Token:</span>
+          <span class="token-value">${idToken ? '✅ Present' : '❌ Not available'}</span>
+          ${idToken ? `<button class="token-btn" onclick="copyToClipboard('${idToken}')">📋 Copy</button>` : ''}
+        </div>
+      </div>
+      
+      <div class="auth-actions">
+        <button id="refresh-identity" class="ms-Button ms-Button--default">🔄 Refresh Identity</button>
+        <button id="renew-token" class="ms-Button ms-Button--default">🔑 Renew Token</button>
+      </div>
+    `;
+
+    // Insert at the beginning of results container
+    resultsContainer.insertBefore(userIdentitySection, resultsContainer.firstChild);
+
+    // Add event handlers
+    const refreshBtn = document.getElementById("refresh-identity");
+    if (refreshBtn) {
+      refreshBtn.onclick = () => {
+        displayUserIdentity();
+      };
+    }
+
+    const renewBtn = document.getElementById("renew-token");
+    if (renewBtn) {
+      renewBtn.onclick = async () => {
+        try {
+          await authService.renewToken();
+          displayUserIdentity();
+          showSuccess("Token renewed successfully!");
+        } catch (error) {
+          showError("Failed to renew token: " + error.message);
+        }
+      };
+    }
+
+  } catch (error) {
+    console.error("❌ Error displaying user identity:", error);
+    showError("Failed to load user identity: " + error.message);
+  }
+}
+
+// Helper function to copy text to clipboard
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    showSuccess("Copied to clipboard!");
+  }).catch(() => {
+    showError("Failed to copy to clipboard");
+  });
+}
+
+// Helper function to decode JWT token
+function decodeJWT(token: string): any {
+  try {
+    // Split the JWT into parts
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT format');
+    }
+
+    // Decode the payload (second part)
+    const payload = parts[1];
+    // Add padding if needed for base64 decoding
+    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+    
+    return JSON.parse(decodedPayload);
+  } catch (error) {
+    console.error('Failed to decode JWT:', error);
+    return null;
+  }
+}
+
+// Helper function to format timestamp
+function formatTimestamp(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleString();
+}
+
+// Helper function to show success messages
+function showSuccess(message: string) {
+  const successDiv = document.createElement("div");
+  successDiv.className = "success-message";
+  successDiv.style.cssText = `
+    background-color: #f0f9f4;
+    border: 1px solid #86efac;
+    color: #059669;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 10px 20px;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+  `;
+  successDiv.textContent = message;
+  
+  const container = document.getElementById("app-body") || document.body;
+  container.insertBefore(successDiv, container.firstChild);
+  
+  // Remove success message after 3 seconds
+  setTimeout(() => {
+    if (successDiv.parentNode) {
+      successDiv.parentNode.removeChild(successDiv);
+    }
+  }, 3000);
+}
