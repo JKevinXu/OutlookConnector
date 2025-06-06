@@ -95,7 +95,7 @@ export async function run() {
   
   // Display email info
   let subjectLabel = document.createElement("b");
-  subjectLabel.textContent = "Subject: ";
+  subjectLabel.textContent = "📧 Subject: ";
   insertAt.appendChild(subjectLabel);
   insertAt.appendChild(document.createElement("br"));
   insertAt.appendChild(document.createTextNode(item.subject || "No subject"));
@@ -109,9 +109,23 @@ export async function run() {
       if (result.status === Office.AsyncResultStatus.Succeeded) {
         const emailBody = result.value;
         
+        // Display first 100 characters preview
+        let previewLabel = document.createElement("b");
+        previewLabel.textContent = "📄 Email Preview (first 100 chars): ";
+        insertAt.appendChild(previewLabel);
+        insertAt.appendChild(document.createElement("br"));
+        
+        let previewText = document.createElement("p");
+        previewText.textContent = emailBody.substring(0, 100) + (emailBody.length > 100 ? "..." : "");
+        previewText.style.backgroundColor = "#f8f9fa";
+        previewText.style.padding = "10px";
+        previewText.style.borderRadius = "5px";
+        previewText.style.fontStyle = "italic";
+        insertAt.appendChild(previewText);
+        
         // Display original length
         let lengthInfo = document.createElement("p");
-        lengthInfo.innerHTML = `<strong>Original email length:</strong> ${emailBody.length} characters`;
+        lengthInfo.innerHTML = `<strong>📊 Total email length:</strong> ${emailBody.length} characters`;
         insertAt.appendChild(lengthInfo);
         
         // Add summarize button
@@ -156,7 +170,7 @@ export async function runStandalone() {
   insertAt.innerHTML = "";
   console.log("🧹 Cleared previous content");
   
-  // Simulate email data
+  // Use the actual email content directly
   const mockEmailSubject = "I want to onboard FBA";
   const mockEmailBody = `Subject: I want to onboard FBA
 
@@ -207,44 +221,37 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
   insertAt.appendChild(document.createElement("br"));
   insertAt.appendChild(document.createElement("br"));
 
+  // Display first 100 characters preview
+  let previewLabel = document.createElement("b");
+  previewLabel.textContent = "📄 Email Preview (first 100 chars): ";
+  insertAt.appendChild(previewLabel);
+  insertAt.appendChild(document.createElement("br"));
+  
+  let previewText = document.createElement("p");
+  previewText.textContent = mockEmailBody.substring(0, 100) + (mockEmailBody.length > 100 ? "..." : "");
+  previewText.style.backgroundColor = "#f8f9fa";
+  previewText.style.padding = "15px";
+  previewText.style.borderRadius = "8px";
+  previewText.style.fontStyle = "italic";
+  previewText.style.border = "1px solid #e1e5e9";
+  previewText.style.marginTop = "10px";
+  insertAt.appendChild(previewText);
+
   // Display original length
   let lengthInfo = document.createElement("p");
-  lengthInfo.innerHTML = `<strong>📊 Original email length:</strong> ${mockEmailBody.length} characters`;
+  lengthInfo.innerHTML = `<strong>📊 Total email length:</strong> ${mockEmailBody.length} characters`;
   insertAt.appendChild(lengthInfo);
   
   // Add summarize button
   let summarizeBtn = document.createElement("button");
   summarizeBtn.textContent = "🤖 Summarize with AI";
   summarizeBtn.className = "ms-Button ms-Button--primary";
-  summarizeBtn.style.marginTop = "10px";
+  summarizeBtn.style.marginTop = "15px";
   summarizeBtn.onclick = () => summarizeEmail(mockEmailBody, insertAt);
   insertAt.appendChild(summarizeBtn);
   
   // Add divider
   insertAt.appendChild(document.createElement("hr"));
-  
-  // Show demo instructions
-  let demoInfo = document.createElement("div");
-  demoInfo.className = "demo-info";
-  demoInfo.innerHTML = `
-    <h4 class="demo-title">🔧 Demo Mode Active</h4>
-    <p class="demo-description">This is a standalone browser test. In a real Outlook add-in:</p>
-    <div class="demo-list">
-      <div class="demo-item">
-        <span class="demo-bullet">•</span>
-        <span class="demo-text">📧 Email subject and body would come from the selected message</span>
-      </div>
-      <div class="demo-item">
-        <span class="demo-bullet">•</span>
-        <span class="demo-text">🔄 This would run inside Outlook's task pane</span>
-      </div>
-      <div class="demo-item">
-        <span class="demo-bullet">•</span>
-        <span class="demo-text">🤖 AI summarization would work with real email content</span>
-      </div>
-    </div>
-  `;
-  insertAt.appendChild(demoInfo);
 }
 
 async function summarizeEmail(emailContent: string, container: HTMLElement) {
