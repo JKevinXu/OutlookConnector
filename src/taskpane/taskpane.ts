@@ -6,57 +6,80 @@
 /* global document, Office */
 
 // Check if we're running in Office context or standalone browser
-const isInOfficeContext = typeof Office !== 'undefined' && 
-  Office.context && 
-  Office.context.mailbox && 
-  Office.context.host;
+let isInOfficeContext = false;
 
-console.log("🔧 Script loaded. Office context:", Office?.context || "undefined");
-console.log("🔍 Is in real Office context:", isInOfficeContext);
+try {
+  isInOfficeContext = typeof Office !== 'undefined' && 
+    Office.context && 
+    Office.context.mailbox && 
+    Office.context.host !== undefined;
+    
+  console.log("🔧 Script loaded. Office context:", Office?.context || "undefined");
+  console.log("🔍 Is in real Office context:", isInOfficeContext);
+} catch (error) {
+  console.warn("⚠️ Error checking Office context:", error);
+  isInOfficeContext = false;
+}
 
 if (isInOfficeContext) {
-  Office.onReady((info) => {
-    console.log("📧 Office.onReady fired", info);
-    if (info.host === Office.HostType.Outlook) {
-      document.getElementById("sideload-msg").style.display = "none";
-      document.getElementById("app-body").style.display = "flex";
-      
-      const button = document.getElementById("run");
-      console.log("🔘 Button element:", button);
-      if (button) {
-        button.onclick = run;
-        console.log("✅ Button click handler attached (Office mode)");
-      } else {
-        console.error("❌ Button not found!");
+  try {
+    Office.onReady((info) => {
+      console.log("📧 Office.onReady fired", info);
+      if (info.host === Office.HostType.Outlook) {
+        document.getElementById("sideload-msg").style.display = "none";
+        document.getElementById("app-body").style.display = "flex";
+        
+        const button = document.getElementById("run");
+        console.log("🔘 Button element:", button);
+        if (button) {
+          button.onclick = run;
+          console.log("✅ Button click handler attached (Office mode)");
+        } else {
+          console.error("❌ Button not found!");
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("❌ Error in Office.onReady:", error);
+  }
 } else {
   // Standalone browser mode for testing
   console.log("🌐 Setting up standalone browser mode");
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log("📄 DOM Content Loaded");
-    console.log("🔧 Running in standalone browser mode for testing");
-    
-    const sideloadMsg = document.getElementById("sideload-msg");
-    const appBody = document.getElementById("app-body");
-    const button = document.getElementById("run");
-    
-    console.log("Elements found:", { sideloadMsg, appBody, button });
-    
-    if (sideloadMsg) sideloadMsg.style.display = "none";
-    if (appBody) appBody.style.display = "flex";
-    
-    if (button) {
-      button.onclick = (e) => {
-        console.log("🔘 Button clicked!", e);
-        runStandalone();
-      };
-      console.log("✅ Button click handler attached (standalone mode)");
-    } else {
-      console.error("❌ Button not found!");
-    }
-  });
+  try {
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log("📄 DOM Content Loaded");
+      console.log("🔧 Running in standalone browser mode for testing");
+      
+      try {
+        const sideloadMsg = document.getElementById("sideload-msg");
+        const appBody = document.getElementById("app-body");
+        const button = document.getElementById("run");
+        
+        console.log("Elements found:", { sideloadMsg, appBody, button });
+        
+        if (sideloadMsg) sideloadMsg.style.display = "none";
+        if (appBody) appBody.style.display = "flex";
+        
+        if (button) {
+          button.onclick = (e) => {
+            console.log("🔘 Button clicked!", e);
+            try {
+              runStandalone();
+            } catch (error) {
+              console.error("❌ Error in runStandalone:", error);
+            }
+          };
+          console.log("✅ Button click handler attached (standalone mode)");
+        } else {
+          console.error("❌ Button not found!");
+        }
+      } catch (error) {
+        console.error("❌ Error setting up DOM elements:", error);
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error setting up DOMContentLoaded listener:", error);
+  }
 }
 
 export async function run() {
@@ -134,29 +157,46 @@ export async function runStandalone() {
   console.log("🧹 Cleared previous content");
   
   // Simulate email data
-  const mockEmailSubject = "Demo: Meeting Regarding Q1 Budget Planning";
-  const mockEmailBody = `Hi Team,
+  const mockEmailSubject = "I want to onboard FBA";
+  const mockEmailBody = `Subject: I want to onboard FBA
 
-I hope this email finds you well. I wanted to schedule a meeting to discuss our Q1 budget planning initiatives.
+Dear Amazon FBA Support Team,
 
-Key Discussion Points:
-1. Review of last quarter's performance metrics
-2. Budget allocation for new projects
-3. Resource planning for the next quarter
-4. Timeline for implementation
+I hope this email finds you well. My name is Marcus Chen, and I'm the founder of TechGear Solutions, an e-commerce business that has been successfully selling electronics and tech accessories through various online platforms for the past three years.
 
-Please let me know your availability for next week. The meeting should take approximately 2 hours.
+I'm reaching out because I'm very interested in transitioning to Amazon's Fulfillment by Amazon (FBA) program to scale our operations and provide better customer service. After researching extensively, I believe FBA is the perfect solution for our growing business needs.
 
-Action Items:
-- Prepare Q4 financial reports
-- Review project proposals
-- Gather team feedback on resource needs
+Current Business Overview:
+Our company currently generates approximately $50,000 in monthly revenue selling items like wireless chargers, phone cases, laptop accessories, and smart home devices. We maintain inventory in a 2,000 sq ft warehouse in Phoenix, Arizona, and currently fulfill orders ourselves through multiple sales channels including our Shopify store, eBay, and other marketplaces.
 
-Looking forward to our discussion.
+Why We Want FBA:
+The primary drivers for our FBA interest include accessing Amazon Prime customers, leveraging Amazon's world-class logistics network, reducing our fulfillment workload, and improving delivery speeds to customers nationwide. We're particularly excited about the potential for increased sales velocity through Prime eligibility and Amazon's trusted fulfillment reputation.
+
+Product Portfolio:
+We're looking to start with our top 15 SKUs, which represent about 80% of our current sales volume. These products range from $12 to $89 in retail price, with healthy profit margins that can accommodate FBA fees. Our products are primarily sourced from vetted suppliers in Taiwan and South Korea, with established quality control processes already in place.
+
+Current Challenges:
+We're currently struggling with shipping costs for individual orders, especially to customers on the East Coast. Our current 3-5 day shipping times are hurting our competitiveness, and we're spending too much time on fulfillment activities rather than focusing on product development and marketing growth strategies.
+
+Questions and Next Steps:
+I have several specific questions about the onboarding process. First, what's the typical timeline for FBA approval and first shipment acceptance? Second, can you provide guidance on optimal inventory planning for new FBA sellers? Third, what are the most common mistakes new FBA sellers make that we should avoid?
+
+Additionally, I'd like to understand the requirements for product photography, listing optimization, and any compliance considerations for electronics products in the FBA program.
+
+Investment Readiness:
+We have $75,000 allocated specifically for initial FBA inventory investment and are prepared to commit to a long-term partnership with Amazon. Our goal is to reach $200,000 in monthly FBA sales within the first year.
+
+I would greatly appreciate the opportunity to speak with someone from your team to discuss our FBA onboarding process. I'm available for a call any weekday between 9 AM and 5 PM PST.
+
+Thank you for your time and consideration. I look forward to hearing from you soon and beginning our FBA journey.
 
 Best regards,
-John Smith
-Project Manager`;
+
+Marcus Chen
+Founder & CEO, TechGear Solutions
+Email: marcus.chen@techgearsolutions.com
+Phone: (602) 555-7892
+Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
   
   // Display email info
   let subjectLabel = document.createElement("b");
@@ -263,21 +303,41 @@ async function callLLMApi(emailContent: string): Promise<string> {
     
     return `🤖 **AI Summary** (Demo Mode):
 
-**Main Topic:** Budget planning meeting for Q1
+**Email Type:** FBA Onboarding Inquiry
 
-**Key Points:**
-• Meeting request for Q1 budget planning discussion
-• 2-hour meeting needed for next week
-• Focus on performance review and resource allocation
+**Business Profile:**
+• Company: TechGear Solutions (Marcus Chen, Founder & CEO)
+• Current Revenue: $50,000/month selling electronics & tech accessories
+• Experience: 3 years in e-commerce across multiple platforms
+• Location: Phoenix, AZ (2,000 sq ft warehouse)
 
-**Action Items:**
-• Prepare Q4 financial reports
-• Review project proposals  
-• Gather team feedback on resource needs
+**FBA Interest & Goals:**
+• Want to access Amazon Prime customers
+• Improve delivery speeds nationwide
+• Reduce fulfillment workload to focus on growth
+• Target: $200,000/month within first year
 
-**Participants:** Team members need to confirm availability
+**Product Portfolio:**
+• Starting with top 15 SKUs (80% of current sales)
+• Price range: $12-$89 with healthy margins
+• Electronics: chargers, cases, laptop accessories, smart home devices
+• Suppliers: Taiwan & South Korea with quality control
 
-*To enable real AI summarization: Add your OpenAI/Claude/other LLM API key to the code*`;
+**Key Questions:**
+• FBA approval timeline and first shipment process
+• Inventory planning guidance for new sellers
+• Common mistakes to avoid
+• Product photography & listing requirements
+• Electronics compliance considerations
+
+**Investment Ready:**
+• $75,000 allocated for initial FBA inventory
+• Available for calls: weekdays 9 AM-5 PM PST
+• Serious about long-term Amazon partnership
+
+**Next Steps:** Schedule consultation call to discuss onboarding process
+
+*To enable real AI analysis: Add your OpenAI/Claude/other LLM API key to the code*`;
   }
   
   const response = await fetch(API_URL, {

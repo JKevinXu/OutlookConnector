@@ -8,7 +8,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>🤖 AI Email Summarizer</title>
+    <title>Seller Email Assistant</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
@@ -24,8 +24,8 @@
     <!-- Simplified header -->
     <header class="summarizer-header">
         <div class="header-content">
-            <span class="header-icon">🤖</span>
-            <h1 class="ms-font-xl">AI Email Summarizer</h1>
+            <span class="header-icon">🛒</span>
+            <h1 class="ms-font-xl">Seller Email Assistant</h1>
         </div>
     </header>
 
@@ -42,15 +42,8 @@
         <!-- Action button -->
         <div class="action-section">
             <button id="run" class="ms-Button ms-Button--primary summarize-btn">
-                <span class="ms-Button-label">🔍 Analyze Email</span>
+                <span class="ms-Button-label">📧 Analyze Seller Email</span>
             </button>
-        </div>
-
-        <!-- Instructions for browser testing -->
-        <div class="browser-instructions">
-            <p class="ms-font-s">
-                🔧 <strong>Browser Test Mode:</strong> Click the button above to see AI email summarization with mock data.
-            </p>
         </div>
 
         <!-- Results container -->
@@ -61,126 +54,198 @@
 
     <!-- Custom styles for simplified layout -->
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
         .summarizer-header {
             background: linear-gradient(135deg, #0078d4, #106ebe);
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            margin-bottom: 0;
         }
 
         .header-content {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .header-icon {
-            font-size: 24px;
+            font-size: 28px;
         }
 
         .sideload-section {
-            padding: 20px;
+            padding: 30px;
             text-align: center;
-            background: #f8f9fa;
+            background: white;
             margin: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid #e1e5e9;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .sideload-content h2 {
             color: #323130;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 20px;
         }
 
         .sideload-content p {
             color: #605e5c;
+            font-size: 16px;
+            line-height: 1.5;
         }
 
         .summarizer-main {
-            padding: 20px;
+            padding: 0;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .action-section {
             text-align: center;
-            margin-bottom: 20px;
+            margin: 30px 20px 20px 20px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            order: 1;
         }
 
         .summarize-btn {
-            font-size: 16px;
-            padding: 12px 24px;
-            min-width: 200px;
+            font-size: 18px;
+            padding: 16px 32px;
+            min-width: 240px;
             background-color: #0078d4;
             border-color: #0078d4;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
         }
 
         .summarize-btn:hover {
             background-color: #106ebe;
             border-color: #106ebe;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 110, 190, 0.3);
         }
 
         .browser-instructions {
             text-align: center;
-            margin: 15px 0;
-            padding: 10px;
-            background: #fff4ce;
-            border-radius: 4px;
-            border: 1px solid #fed100;
+            margin: 20px;
+            padding: 20px;
+            background: #fff8e1;
+            border-radius: 8px;
+            border: 1px solid #ffc107;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .browser-instructions p {
+            margin: 0;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .results-section {
-            margin-top: 20px;
+            margin: 0 20px 30px 20px;
+            order: 2;
         }
 
         .email-info {
             background: white;
             border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 15px;
-            min-height: 50px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 16px;
+            line-height: 1.6;
         }
 
         .email-info:empty {
             display: none;
         }
 
+        .email-info b {
+            color: #0078d4;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .email-info p {
+            margin: 15px 0;
+        }
+
+        .email-info hr {
+            margin: 25px 0;
+            border: none;
+            border-top: 2px solid #f0f0f0;
+        }
+
         /* Loading and summary styles */
         .loading-indicator {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             color: #0078d4;
             font-style: italic;
-        }
-
-        .summary-container {
-            background: #f3f2f1;
-            border-left: 4px solid #0078d4;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .demo-info {
-            background: #fff4ce;
-            border: 1px solid #fed100;
-            border-radius: 4px;
-            padding: 12px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
             margin: 15px 0;
         }
 
+        .summary-container {
+            background: #f8f9fa;
+            border-left: 5px solid #0078d4;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .demo-info {
+            background: #fff8e1;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
         .demo-title {
-            margin: 0 0 8px 0;
-            color: #8a6d00;
-            font-size: 16px;
-            font-weight: 600;
+            margin: 0 0 15px 0;
+            color: #856404;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .demo-description {
-            margin: 0 0 12px 0;
-            color: #8a6d00;
-            font-size: 14px;
+            margin: 0 0 20px 0;
+            color: #856404;
+            font-size: 16px;
+            line-height: 1.5;
+            font-weight: 500;
         }
 
         .demo-list {
@@ -190,23 +255,67 @@
         .demo-item {
             display: flex;
             align-items: flex-start;
-            margin: 6px 0;
-            gap: 8px;
+            margin: 12px 0;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .demo-item:last-child {
+            border-bottom: none;
         }
 
         .demo-bullet {
-            color: #8a6d00;
+            color: #856404;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
             line-height: 1.4;
             flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .demo-text {
-            color: #8a6d00;
-            font-size: 14px;
-            line-height: 1.4;
+            color: #856404;
+            font-size: 15px;
+            line-height: 1.5;
             flex: 1;
+            font-weight: 500;
+        }
+
+        /* Button improvements */
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        button:focus {
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.3);
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .summarizer-main {
+                padding: 0 10px;
+            }
+            
+            .action-section,
+            .results-section,
+            .browser-instructions,
+            .demo-info {
+                margin: 15px 10px;
+                padding: 20px 15px;
+            }
+            
+            .summarize-btn {
+                min-width: 200px;
+                font-size: 16px;
+                padding: 14px 24px;
+            }
+            
+            .header-content h1 {
+                font-size: 20px;
+            }
         }
     </style>
 </body>
