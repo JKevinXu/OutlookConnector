@@ -855,7 +855,7 @@ function showReAuthenticationPrompt() {
 }
 
 function initializeApiUI() {
-  // Get Seller History button
+  // Get Seller Metrics button
   const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
   if (getSellerHistoryBtn) {
     getSellerHistoryBtn.onclick = handleGetSellerHistory;
@@ -875,13 +875,13 @@ async function handleGetSellerHistory() {
       ...(marketplaceIdInput?.value && { marketplaceId: marketplaceIdInput.value })
     };
 
-    console.log("📞 Calling seller history API...");
+    console.log("📞 Calling seller metrics API...");
     showApiLoading(true);
 
     const result = await sellerHistoryService.getSellerHistory(params);
     
     console.log("✅ API call successful:", result);
-    showSuccess("Seller history retrieved successfully!");
+    showSuccess("Seller metrics retrieved successfully!");
     displayApiResults(result);
 
   } catch (error) {
@@ -906,10 +906,355 @@ async function handleGetSellerHistory() {
 function displayApiResults(data: any) {
   const resultsDiv = document.getElementById("api-results");
   const outputPre = document.getElementById("api-output");
+  const metricsDiv = document.getElementById("results-metrics-display");
   
-  if (resultsDiv && outputPre) {
+  if (resultsDiv && outputPre && metricsDiv) {
+    // Store raw JSON
     outputPre.textContent = JSON.stringify(data, null, 2);
+    
+    // Generate metrics display
+    generateKeyMetrics(data, metricsDiv);
+    
+    // Show results
     resultsDiv.style.display = "block";
+    
+    // Setup tab functionality
+    setupTabNavigation();
+  }
+}
+
+function generateKeyMetrics(data: any, metricsDiv: HTMLElement) {
+  const metrics = extractSellerMetrics(data);
+  
+  var html = '';
+  html += '<div style="';
+  html += 'display: -webkit-box; display: -ms-flexbox; display: flex;';
+  html += '-webkit-box-wrap: wrap; -ms-flex-wrap: wrap; flex-wrap: wrap;';
+  html += 'margin: -2px;';
+  html += 'padding: 8px;';
+  html += '">';
+  
+  for (var i = 0; i < metrics.length; i++) {
+    var metric = metrics[i];
+    
+    var cardStyle = '';
+    cardStyle += 'background: #f8f9fa;';
+    cardStyle += 'border: 1px solid #e9ecef;';
+    cardStyle += 'border-radius: 4px;';
+    cardStyle += 'padding: 8px 6px;';
+    cardStyle += 'text-align: left;';
+    cardStyle += 'margin: 2px;';
+    cardStyle += 'min-width: 90px;';
+    cardStyle += 'max-width: none;';
+    // More flexible width calculation
+    cardStyle += 'width: -webkit-calc(50% - 4px);';
+    cardStyle += 'width: -moz-calc(50% - 4px);';
+    cardStyle += 'width: calc(50% - 4px);';
+    cardStyle += '-webkit-box-sizing: border-box;';
+    cardStyle += '-moz-box-sizing: border-box;';
+    cardStyle += 'box-sizing: border-box;';
+    cardStyle += 'cursor: pointer;';
+    cardStyle += '-webkit-transition: all 0.2s ease;';
+    cardStyle += '-moz-transition: all 0.2s ease;';
+    cardStyle += '-o-transition: all 0.2s ease;';
+    cardStyle += 'transition: all 0.2s ease;';
+    
+    var hoverEvents = '';
+    hoverEvents += 'onmouseover="this.style.background=\'#e9ecef\'; ';
+    hoverEvents += 'if (this.style.transform !== undefined) { this.style.transform=\'translateY(-1px)\'; } ';
+    hoverEvents += 'this.style.boxShadow=\'0 2px 4px rgba(0,0,0,0.1)\'" ';
+    hoverEvents += 'onmouseout="this.style.background=\'#f8f9fa\'; ';
+    hoverEvents += 'if (this.style.transform !== undefined) { this.style.transform=\'translateY(0)\'; } ';
+    hoverEvents += 'this.style.boxShadow=\'none\'" ';
+    
+    // Compact single line with abbreviations for better fit
+    var shortLabel = metric.label
+      .replace('Total Revenue', 'Revenue')
+      .replace('Units Sold', 'Units')
+      .replace('Buy Box Win Rate', 'Buy Box')
+      .replace('Active Products', 'Products')
+      .replace('Total Activities', 'Activities')
+      .replace('Avg Selling Price', 'Avg Price');
+    
+    var singleLineContent = metric.icon + ' ' + shortLabel + ' ' + metric.value;
+    if (metric.trend) {
+      var trendArrow = '→';
+      if (metric.trend.direction === 'up') {
+        trendArrow = '↗';
+      } else if (metric.trend.direction === 'down') {
+        trendArrow = '↘';
+      }
+      singleLineContent += ' ' + trendArrow + metric.trend.text;
+    }
+    
+    html += '<div style="' + cardStyle + '" ' + hoverEvents + '>';
+    html += '<div style="';
+    html += 'font-size: 11px;';
+    html += 'color: #495057;';
+    html += 'font-weight: 500;';
+    html += 'line-height: 1.3;';
+    html += 'word-wrap: break-word;';
+    html += 'overflow-wrap: break-word;';
+    html += '">' + singleLineContent + '</div>';
+    html += '</div>';
+  }
+  
+  html += '</div>';
+  metricsDiv.innerHTML = html;
+}
+
+function extractSellerMetrics(data: any): MetricItem[] {
+  const metrics: MetricItem[] = [];
+  
+  // Focus on the most important business metrics from seller_info
+  const sellerInfo = data.seller_info || {};
+  
+  // 1. Total GMS (Revenue)
+  if (sellerInfo.s_total_gms) {
+    var trend = undefined;
+    if (sellerInfo.s_total_gms_momp) {
+      var isNegative = sellerInfo.s_total_gms_momp.indexOf('-') !== -1;
+      trend = {
+        direction: isNegative ? 'down' : 'up',
+        text: sellerInfo.s_total_gms_momp + ' MoM'
+      };
+    }
+    
+    metrics.push({
+      icon: '💰',
+      label: 'Total Revenue',
+      value: sellerInfo.s_total_gms,
+      category: 'finance',
+      trend: trend
+    });
+  }
+  
+  // 2. Total Ordered Units
+  if (sellerInfo.total_ordered_units) {
+    var trend = undefined;
+    if (sellerInfo.total_ordered_units_momp) {
+      var isNegative = sellerInfo.total_ordered_units_momp.indexOf('-') !== -1;
+      trend = {
+        direction: isNegative ? 'down' : 'up',
+        text: sellerInfo.total_ordered_units_momp + ' MoM'
+      };
+    }
+    
+    metrics.push({
+      icon: '📦',
+      label: 'Units Sold',
+      value: sellerInfo.total_ordered_units,
+      category: 'sales',
+      trend: trend
+    });
+  }
+  
+  // 3. Buy Box Win Rate
+  if (sellerInfo.buy_box_win_rate) {
+    const winRate = (parseFloat(sellerInfo.buy_box_win_rate) * 100).toFixed(1);
+    metrics.push({
+      icon: '🎯',
+      label: 'Buy Box Win Rate',
+      value: winRate + '%',
+      category: 'performance'
+    });
+  }
+  
+  // 4. FBA Buyable ASINs
+  if (sellerInfo.fba_buyable_asin_count_3p) {
+    metrics.push({
+      icon: '📋',
+      label: 'Buyable Asins',
+      value: sellerInfo.fba_buyable_asin_count_3p,
+      category: 'inventory'
+    });
+  }
+  
+  // 5. IPI Score
+  if (sellerInfo.ipi_scr) {
+    metrics.push({
+      icon: '📊',
+      label: 'IPI Score',
+      value: sellerInfo.ipi_scr,
+      category: 'performance'
+    });
+  }
+  
+  // 6. Total Activities
+  if (sellerInfo.activity_total_count) {
+    metrics.push({
+      icon: '📞',
+      label: 'Total Activities',
+      value: sellerInfo.activity_total_count,
+      category: 'engagement'
+    });
+  }
+  
+  // 7. Marketplace
+  if (sellerInfo.home_marketplace_id) {
+    metrics.push({
+      icon: '🌍',
+      label: 'Marketplace',
+      value: sellerInfo.home_marketplace_id,
+      category: 'general'
+    });
+  }
+  
+  // 8. Brand Category
+  if (sellerInfo.merchant_primary_pg_desc) {
+    metrics.push({
+      icon: '🏷️',
+      label: 'Category',
+      value: sellerInfo.merchant_primary_pg_desc,
+      category: 'general'
+    });
+  }
+  
+  // 9. Average Selling Price
+  if (sellerInfo.net_ordered_asp) {
+    const asp = parseFloat(sellerInfo.net_ordered_asp);
+    metrics.push({
+      icon: '💴',
+      label: 'Avg Selling Price',
+      value: '¥' + asp.toLocaleString(),
+      category: 'finance'
+    });
+  }
+  
+  // 10. FBA Adoption Status
+  if (sellerInfo.fba_adoption_status) {
+    metrics.push({
+      icon: '🚚',
+      label: 'FBA Status',
+      value: sellerInfo.fba_adoption_status === 'Y' ? 'Active' : 'Inactive',
+      category: 'general'
+    });
+  }
+  
+  // Return only first 10 metrics for compatibility
+  var result = [];
+  for (var i = 0; i < Math.min(metrics.length, 10); i++) {
+    result.push(metrics[i]);
+  }
+  return result;
+}
+
+// Helper interfaces and functions
+interface MetricItem {
+  icon: string;
+  label: string;
+  value: string;
+  category: string;
+  trend?: {
+    direction: 'up' | 'down' | 'neutral';
+    text: string;
+  };
+}
+
+function getMetricColor(index: number) {
+  const colors = [
+    { gradient: 'linear-gradient(135deg, #667eea, #764ba2)', shadow: 'rgba(102, 126, 234, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #f093fb, #f5576c)', shadow: 'rgba(240, 147, 251, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #4facfe, #00f2fe)', shadow: 'rgba(79, 172, 254, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #43e97b, #38f9d7)', shadow: 'rgba(67, 233, 123, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #fa709a, #fee140)', shadow: 'rgba(250, 112, 154, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #a8edea, #fed6e3)', shadow: 'rgba(168, 237, 234, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #ff9a9e, #fecfef)', shadow: 'rgba(255, 154, 158, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #a1c4fd, #c2e9fb)', shadow: 'rgba(161, 196, 253, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #ffecd2, #fcb69f)', shadow: 'rgba(255, 236, 210, 0.3)' },
+    { gradient: 'linear-gradient(135deg, #e0c3fc, #9bb5ff)', shadow: 'rgba(224, 195, 252, 0.3)' }
+  ];
+  
+  return colors[index % colors.length];
+}
+
+function formatCurrency(value: number): string {
+  if (value >= 1000000) {
+    return `$${(value / 1000000).toFixed(1)}M`;
+  } else if (value >= 1000) {
+    return `$${(value / 1000).toFixed(1)}K`;
+  } else {
+    return `$${value.toFixed(2)}`;
+  }
+}
+
+function formatNumberValue(value: number, key: string): string {
+  if (/revenue|sales|amount|price|cost|total|value|earning|dollar/i.test(key)) {
+    return formatCurrency(value);
+  } else if (/percent|rate|ratio/i.test(key)) {
+    return `${value.toFixed(1)}%`;
+  } else if (Number.isInteger(value)) {
+    return value.toLocaleString();
+  } else {
+    return value.toFixed(2);
+  }
+}
+
+function formatFieldName(key: string): string {
+  return key.split(/[_-]/).map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+}
+
+function getCategoryForField(key: string): string {
+  if (/revenue|sales|amount|price|cost|total|value|earning/i.test(key)) return 'Revenue';
+  if (/count|quantity|number|volume/i.test(key)) return 'Volume';
+  if (/date|time|created|updated/i.test(key)) return 'Timeline';
+  if (/status|state|type|category/i.test(key)) return 'Status';
+  if (/id|identifier|key/i.test(key)) return 'Identity';
+  return 'General';
+}
+
+function getNumberIcon(key: string): string {
+  if (/revenue|sales|amount|price|cost|total|value|earning/i.test(key)) return '💰';
+  if (/count|quantity|number|volume/i.test(key)) return '🔢';
+  if (/percent|rate|ratio/i.test(key)) return '📊';
+  return '📈';
+}
+
+function getStringIcon(key: string): string {
+  if (/name|title/i.test(key)) return '🏷️';
+  if (/status|state/i.test(key)) return '🔘';
+  if (/id|identifier/i.test(key)) return '🆔';
+  if (/email|mail/i.test(key)) return '📧';
+  if (/phone|tel/i.test(key)) return '📞';
+  return '📝';
+}
+
+function setupTabNavigation() {
+  var metricsTab = document.getElementById('metrics-tab');
+  var rawTab = document.getElementById('raw-tab');
+  var metricsContent = document.getElementById('metrics-content');
+  var rawContent = document.getElementById('raw-content');
+  
+  if (metricsTab && rawTab && metricsContent && rawContent) {
+    metricsTab.onclick = function() {
+      // Reset all tabs
+      metricsTab.style.background = 'white';
+      metricsTab.style.color = '#0078d4';
+      metricsTab.style.borderBottom = '2px solid #0078d4';
+      rawTab.style.background = '#f8f9fa';
+      rawTab.style.color = '#6c757d';
+      rawTab.style.borderBottom = '2px solid transparent';
+      
+      // Show/hide content
+      metricsContent.style.display = 'block';
+      rawContent.style.display = 'none';
+    };
+    
+    rawTab.onclick = function() {
+      // Reset all tabs
+      metricsTab.style.background = '#f8f9fa';
+      metricsTab.style.color = '#6c757d';
+      metricsTab.style.borderBottom = '2px solid transparent';
+      rawTab.style.background = 'white';
+      rawTab.style.color = '#0078d4';
+      rawTab.style.borderBottom = '2px solid #0078d4';
+      
+      // Show/hide content
+      metricsContent.style.display = 'none';
+      rawContent.style.display = 'block';
+    };
   }
 }
 
@@ -926,7 +1271,7 @@ function showApiLoading(isLoading: boolean) {
   if (getSellerHistoryBtn) {
     const label = getSellerHistoryBtn.querySelector('.ms-Button-label');
     if (label) {
-      label.textContent = isLoading ? "⏳ Loading..." : "📈 Get Seller History";
+      label.textContent = isLoading ? "⏳ Loading..." : "📈 Get Seller Metrics";
     }
     (getSellerHistoryBtn as HTMLButtonElement).disabled = isLoading;
   }
