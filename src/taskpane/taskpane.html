@@ -53,6 +53,54 @@
         <div id="results-container" class="results-section">
             <div id="item-subject" class="email-info"></div>
         </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>🔐 Authentication</h3>
+            <div id="auth-status" style="margin: 10px 0;">
+                <span id="auth-message">Not authenticated</span>
+            </div>
+            <button id="login-btn" class="ms-Button ms-Button--primary" style="display: none;">
+                <span class="ms-Button-label">🔐 Sign In</span>
+            </button>
+            <button id="logout-btn" class="ms-Button" style="display: none;">
+                <span class="ms-Button-label">🚪 Sign Out</span>
+            </button>
+            <div id="user-info" style="display: none; margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 3px;">
+                <p><strong>Name:</strong> <span id="user-name"></span></p>
+                <p><strong>Email:</strong> <span id="user-email"></span></p>
+                <p><strong>Organization:</strong> <span id="user-org"></span></p>
+            </div>
+        </div>
+
+        <!-- API Section -->
+        <div class="api-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>📊 Seller History API</h3>
+            
+            <div style="margin: 10px 0; padding: 10px; background: #f0f9ff; border-left: 4px solid #0078d4; border-radius: 3px;">
+                <p style="margin: 0; font-size: 14px;"><strong>ℹ️ Merchant ID:</strong> 7956983745 (hardcoded)</p>
+            </div>
+
+            <div style="margin: 10px 0;">
+                <label for="marketplace-id" style="display: block; margin-bottom: 5px;"><strong>Marketplace ID (Optional):</strong></label>
+                <input type="text" id="marketplace-id" placeholder="e.g., A1VC38T7YXB528 (JP marketplace)" 
+                       style="width: 100%; padding: 5px; box-sizing: border-box;" />
+            </div>
+
+            <div style="margin: 15px 0;">
+                <button id="get-seller-history-btn" class="ms-Button ms-Button--primary" style="margin-right: 10px;">
+                    <span class="ms-Button-label">📈 Get Seller History</span>
+                </button>
+                <button id="get-current-user-history-btn" class="ms-Button" style="margin-right: 10px;">
+                    <span class="ms-Button-label">👤 Get My History</span>
+                </button>
+            </div>
+
+            <div id="api-results" style="display: none; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 3px; max-height: 300px; overflow-y: auto;">
+                <h4>Results:</h4>
+                <pre id="api-output" style="white-space: pre-wrap; font-size: 12px;"></pre>
+            </div>
+        </div>
     </main>
 
     <!-- Custom styles for simplified layout -->

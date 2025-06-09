@@ -99,6 +99,24 @@ module.exports = async (env, options) => {
           { from: /^\/taskpane\/callback$/, to: '/taskpane.html' },
         ]
       },
+      proxy: [
+        {
+          context: ['/api'],
+          target: 'https://g3kt5l83j8.execute-api.us-east-1.amazonaws.com/prod',
+          secure: true,
+          changeOrigin: true,
+          logLevel: 'debug',
+          pathRewrite: {
+            '^/api': ''
+          },
+          onProxyReq: (proxyReq, req, res) => {
+            console.log('Proxying request:', req.method, req.url);
+          },
+          onProxyRes: (proxyRes, req, res) => {
+            console.log('Proxy response:', proxyRes.statusCode, req.url);
+          }
+        }
+      ]
     },
   };
 

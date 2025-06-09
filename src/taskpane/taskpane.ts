@@ -7,6 +7,7 @@
 
 import { authService } from '../auth/AuthService';
 import { UserProfile } from '../types/auth';
+import { sellerHistoryService } from '../api/SellerHistoryService';
 
 // Check if we're running in Office context or standalone browser
 let isInOfficeContext = false;
@@ -208,71 +209,36 @@ function showError(message: string) {
   }, 5000);
 }
 
-if (isInOfficeContext) {
-  try {
-    Office.onReady((info) => {
-      console.log("📧 Office.onReady fired", info);
-      if (info.host === Office.HostType.Outlook) {
-        // Check if this is a callback URL first
-        if (handleCallbackRouting()) {
-          return; // Exit early if processing callback
-        }
-        
-        initializeAuth().then(() => {
-          const button = document.getElementById("run");
-          console.log("🔘 Button element:", button);
-          if (button) {
-            button.onclick = run;
-            console.log("✅ Button click handler attached (Office mode)");
-          } else {
-            console.error("❌ Button not found!");
-          }
-        });
-      }
-    });
-  } catch (error) {
-    console.error("❌ Error in Office.onReady:", error);
-  }
+// Handle both Office and standalone contexts
+if (typeof Office !== 'undefined') {
+  Office.onReady((info) => {
+    console.log("📋 Office ready:", info);
+    initializeApp();
+  });
 } else {
-  // Standalone browser mode for testing
-  console.log("🌐 Setting up standalone browser mode");
-  try {
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log("📄 DOM Content Loaded");
-      console.log("🔧 Running in standalone browser mode for testing");
-      
-      // Check if this is a callback URL first
-      if (handleCallbackRouting()) {
-        return; // Exit early if processing callback
-      }
-      
-      initializeAuth().then(() => {
-        try {
-          const button = document.getElementById("run");
-          
-          console.log("Elements found:", { button });
-          
-          if (button) {
-            button.onclick = (e) => {
-              console.log("🔘 Button clicked!", e);
-              try {
-                runStandalone();
-              } catch (error) {
-                console.error("❌ Error in runStandalone:", error);
-              }
-            };
-            console.log("✅ Button click handler attached (standalone mode)");
-          } else {
-            console.error("❌ Button not found!");
-          }
-        } catch (error) {
-          console.error("❌ Error setting up DOM elements:", error);
-        }
-      });
-    });
-  } catch (error) {
-    console.error("❌ Error setting up DOMContentLoaded listener:", error);
+  // Fallback for non-Office environments
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("🌐 DOM ready (standalone)");
+    initializeApp();
+  });
+}
+
+async function initializeApp() {
+  console.log("🚀 Initializing application...");
+  
+  // Handle callback routing first
+  const isCallback = handleCallbackRouting();
+  if (isCallback) {
+    return; // Exit early if processing callback
   }
+  
+  // Initialize authentication
+  await initializeAuth();
+  
+  // Initialize API UI
+  initializeApiUI();
+  
+  console.log("✅ Application initialized");
 }
 
 export async function run() {
@@ -893,4 +859,113 @@ function showSuccess(message: string) {
       successDiv.parentNode.removeChild(successDiv);
     }
   }, 3000);
+}
+
+function initializeApiUI() {
+  // Get Seller History button
+  const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
+  if (getSellerHistoryBtn) {
+    getSellerHistoryBtn.onclick = handleGetSellerHistory;
+  }
+
+  // Get Current User History button
+  const getCurrentUserHistoryBtn = document.getElementById("get-current-user-history-btn");
+  if (getCurrentUserHistoryBtn) {
+    getCurrentUserHistoryBtn.onclick = handleGetCurrentUserHistory;
+  }
+}
+
+async function handleGetSellerHistory() {
+  try {
+    if (!authService.isAuthenticated()) {
+      showError("Please sign in first before calling the API.");
+      return;
+    }
+
+    const marketplaceIdInput = document.getElementById("marketplace-id") as HTMLInputElement;
+
+    const params = {
+      ...(marketplaceIdInput?.value && { marketplaceId: marketplaceIdInput.value })
+    };
+
+    console.log("📞 Calling seller history API...");
+    showApiLoading(true);
+
+    const result = await sellerHistoryService.getSellerHistory(params);
+    
+    console.log("✅ API call successful:", result);
+    displayApiResults(result);
+
+  } catch (error) {
+    console.error("❌ API call failed:", error);
+    showError(`API call failed: ${(error as Error).message}`);
+    hideApiResults();
+  } finally {
+    showApiLoading(false);
+  }
+}
+
+async function handleGetCurrentUserHistory() {
+  try {
+    if (!authService.isAuthenticated()) {
+      showError("Please sign in first before calling the API.");
+      return;
+    }
+
+    const marketplaceIdInput = document.getElementById("marketplace-id") as HTMLInputElement;
+    const marketplaceId = marketplaceIdInput?.value || undefined;
+
+    console.log("📞 Calling seller history API for current user...");
+    showApiLoading(true);
+
+    const result = await sellerHistoryService.getCurrentUserSellerHistory(marketplaceId);
+    
+    console.log("✅ API call successful:", result);
+    displayApiResults(result);
+
+  } catch (error) {
+    console.error("❌ API call failed:", error);
+    showError(`API call failed: ${(error as Error).message}`);
+    hideApiResults();
+  } finally {
+    showApiLoading(false);
+  }
+}
+
+function displayApiResults(data: any) {
+  const resultsDiv = document.getElementById("api-results");
+  const outputPre = document.getElementById("api-output");
+  
+  if (resultsDiv && outputPre) {
+    outputPre.textContent = JSON.stringify(data, null, 2);
+    resultsDiv.style.display = "block";
+  }
+}
+
+function hideApiResults() {
+  const resultsDiv = document.getElementById("api-results");
+  if (resultsDiv) {
+    resultsDiv.style.display = "none";
+  }
+}
+
+function showApiLoading(isLoading: boolean) {
+  const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
+  const getCurrentUserHistoryBtn = document.getElementById("get-current-user-history-btn");
+  
+  if (getSellerHistoryBtn) {
+    const label = getSellerHistoryBtn.querySelector('.ms-Button-label');
+    if (label) {
+      label.textContent = isLoading ? "⏳ Loading..." : "📈 Get Seller History";
+    }
+    (getSellerHistoryBtn as HTMLButtonElement).disabled = isLoading;
+  }
+  
+  if (getCurrentUserHistoryBtn) {
+    const label = getCurrentUserHistoryBtn.querySelector('.ms-Button-label');
+    if (label) {
+      label.textContent = isLoading ? "⏳ Loading..." : "👤 Get My History";
+    }
+    (getCurrentUserHistoryBtn as HTMLButtonElement).disabled = isLoading;
+  }
 }
