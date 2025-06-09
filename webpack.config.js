@@ -5,7 +5,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://jkevinxu.github.io/OutlookConnector/"; // Updated for GitHub Pages
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -14,6 +14,8 @@ async function getHttpsOptions() {
 
 module.exports = async (env, options) => {
   const dev = options.mode === "development";
+  const publicPath = dev ? "/" : "/OutlookConnector/";
+  
   const config = {
     devtool: "source-map",
     entry: {
@@ -23,7 +25,7 @@ module.exports = async (env, options) => {
     },
     output: {
       clean: true,
-      publicPath: "/",
+      publicPath: publicPath,
     },
     resolve: {
       extensions: [".ts", ".html", ".js"],
@@ -56,7 +58,7 @@ module.exports = async (env, options) => {
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
         chunks: ["polyfill", "taskpane"],
-        publicPath: "/",
+        publicPath: publicPath,
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -81,7 +83,7 @@ module.exports = async (env, options) => {
         filename: "commands.html",
         template: "./src/commands/commands.html",
         chunks: ["polyfill", "commands"],
-        publicPath: "/",
+        publicPath: publicPath,
       }),
     ],
     devServer: {
