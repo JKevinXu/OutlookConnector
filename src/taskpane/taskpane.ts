@@ -195,8 +195,6 @@ function updateHeader(isAuthenticated: boolean) {
 
   // Keep header simple - just show the title
   headerContent.innerHTML = `
-    <span class="header-icon">🛒</span>
-    <h1 class="ms-font-xl">Seller Email Assistant</h1>
   `;
 }
 
@@ -679,7 +677,7 @@ async function displayUserIdentity() {
     
     userIdentitySection.innerHTML = `
       <div class="user-greeting">
-        <h2>Hi ${user.name || user.email || 'User'}! 👋</h2>
+        <h2>Hi ${user.name || user.email || 'User'}!</h2>
       </div>
     `;
 

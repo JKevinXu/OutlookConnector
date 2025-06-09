@@ -4,18 +4,18 @@
     "manifestVersion": "1.17",
     "version": "1.0.0",
     "name": {
-        "short": "kevinxu-test-sample",
-        "full": "Contoso Task Pane Add-in"
+        "short": "AM Personal Assistant",
+        "full": "AM Personal Assistant - Seller Metrics & Email Analysis"
     },
     "description": {
-        "short": "A template to get started.",
-        "full": "This is the template to get started."
+        "short": "AI-powered personal assistant for Amazon sellers",
+        "full": "AM Personal Assistant provides AI-powered email analysis and comprehensive seller metrics to help Amazon merchants optimize their business operations."
     },
     "developer": {
-        "name": "Contoso",
-        "websiteUrl": "https://www.contoso.com",
-        "privacyUrl": "https://www.contoso.com/privacy",
-        "termsOfUseUrl": "https://www.contoso.com/servicesagreement"
+        "name": "AM Solutions",
+        "websiteUrl": "https://www.amsolutions.com",
+        "privacyUrl": "https://www.amsolutions.com/privacy",
+        "termsOfUseUrl": "https://www.amsolutions.com/terms"
     },
     "icons": {
         "outline": "assets/outline.png",
@@ -37,7 +37,7 @@
         }
     },
     "validDomains": [
-        "contoso.com"
+        "amsolutions.com"
     ],
     "extensions": [
         {
@@ -104,7 +104,7 @@
                             "groups": [
                                 {
                                     "id": "msgReadGroup",
-                                    "label": "Contoso Add-in",
+                                    "label": "AM Personal Assistant",
                                     "icons": [
                                         {
                                             "size": 16,
@@ -123,7 +123,7 @@
                                         {
                                             "id": "msgReadOpenPaneButton",
                                             "type": "button",
-                                            "label": "Show Task Pane",
+                                            "label": "AM Personal Assistant",
                                             "icons": [
                                                 {
                                                     "size": 16,
@@ -139,34 +139,10 @@
                                                 }
                                             ],
                                             "supertip": {
-                                                "title": "Show Task Pane",
-                                                "description": "Opens a pane displaying all available properties."
+                                                "title": "AM Personal Assistant",
+                                                "description": "AI-powered personal assistant for Amazon sellers with email analysis and seller metrics."
                                             },
                                             "actionId": "TaskPaneRuntimeShow"
-                                        },
-                                        {
-                                            "id": "ActionButton",
-                                            "type": "button",
-                                            "label": "Perform an action",
-                                            "icons": [
-                                                {
-                                                    "size": 16,
-                                                    "url": "https://localhost:3000/assets/icon-16.png"
-                                                },
-                                                {
-                                                    "size": 32,
-                                                    "url": "https://localhost:3000/assets/icon-32.png"
-                                                },
-                                                {
-                                                    "size": 80,
-                                                    "url": "https://localhost:3000/assets/icon-80.png"
-                                                }
-                                            ],
-                                            "supertip": {
-                                                "title": "Perform an action",
-                                                "description": "Perform an action when clicked."
-                                            },
-                                            "actionId": "action"
                                         }
                                     ]
                                 }
