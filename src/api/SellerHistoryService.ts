@@ -33,7 +33,7 @@ const API_CONFIG = {
   prod: {
     baseUrl: (typeof window !== 'undefined' && window.location.hostname === 'localhost')
       ? '/api'  // Use webpack proxy during development on localhost
-      : 'https://g3kt5l83j8.execute-api.us-east-1.amazonaws.com/prod',
+      : 'https://corsproxy.io/?https%3A//g3kt5l83j8.execute-api.us-east-1.amazonaws.com/prod', // Use CORS proxy for GitHub Pages
     region: 'us-east-1'
   }
 };
