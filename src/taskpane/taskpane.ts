@@ -860,12 +860,6 @@ function initializeApiUI() {
   if (getSellerHistoryBtn) {
     getSellerHistoryBtn.onclick = handleGetSellerHistory;
   }
-
-  // Get Current User History button
-  const getCurrentUserHistoryBtn = document.getElementById("get-current-user-history-btn");
-  if (getCurrentUserHistoryBtn) {
-    getCurrentUserHistoryBtn.onclick = handleGetCurrentUserHistory;
-  }
 }
 
 async function handleGetSellerHistory() {
@@ -909,44 +903,6 @@ async function handleGetSellerHistory() {
   }
 }
 
-async function handleGetCurrentUserHistory() {
-  try {
-    if (!authService.isAuthenticated()) {
-      showError("Please sign in first before calling the API.");
-      return;
-    }
-
-    const marketplaceIdInput = document.getElementById("marketplace-id") as HTMLInputElement;
-    const marketplaceId = marketplaceIdInput?.value || undefined;
-
-    console.log("📞 Calling seller history API for current user...");
-    showApiLoading(true);
-
-    const result = await sellerHistoryService.getCurrentUserSellerHistory(marketplaceId);
-    
-    console.log("✅ API call successful:", result);
-    showSuccess("Your seller history retrieved successfully!");
-    displayApiResults(result);
-
-  } catch (error) {
-    console.error("❌ API call failed:", error);
-    const errorMessage = (error as Error).message;
-    
-    // Provide specific guidance for authentication errors
-    if (errorMessage.includes('session has expired') || 
-        errorMessage.includes('Authentication failed')) {
-      showError(`${errorMessage} Please click "Sign In" to continue.`);
-      updateAuthUI(); // Refresh the UI to show sign-in options
-    } else {
-      showError(`API call failed: ${errorMessage}`);
-    }
-    
-    hideApiResults();
-  } finally {
-    showApiLoading(false);
-  }
-}
-
 function displayApiResults(data: any) {
   const resultsDiv = document.getElementById("api-results");
   const outputPre = document.getElementById("api-output");
@@ -966,7 +922,6 @@ function hideApiResults() {
 
 function showApiLoading(isLoading: boolean) {
   const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
-  const getCurrentUserHistoryBtn = document.getElementById("get-current-user-history-btn");
   
   if (getSellerHistoryBtn) {
     const label = getSellerHistoryBtn.querySelector('.ms-Button-label');
@@ -974,13 +929,5 @@ function showApiLoading(isLoading: boolean) {
       label.textContent = isLoading ? "⏳ Loading..." : "📈 Get Seller History";
     }
     (getSellerHistoryBtn as HTMLButtonElement).disabled = isLoading;
-  }
-  
-  if (getCurrentUserHistoryBtn) {
-    const label = getCurrentUserHistoryBtn.querySelector('.ms-Button-label');
-    if (label) {
-      label.textContent = isLoading ? "⏳ Loading..." : "👤 Get My History";
-    }
-    (getCurrentUserHistoryBtn as HTMLButtonElement).disabled = isLoading;
   }
 }

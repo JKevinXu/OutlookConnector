@@ -62,11 +62,23 @@
             </div>
 
             <div style="margin: 15px 0;">
-                <button id="get-seller-history-btn" class="ms-Button ms-Button--primary" style="margin-right: 10px;">
+                <button id="get-seller-history-btn" class="ms-Button ms-Button--primary" style="
+                    background: linear-gradient(135deg, #0078d4, #106ebe);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+                    transition: all 0.2s ease;
+                    min-width: 180px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 120, 212, 0.4)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 120, 212, 0.3)'"
+                   onmousedown="this.style.transform='translateY(0)'"
+                   onmouseup="this.style.transform='translateY(-2px)'">
                     <span class="ms-Button-label">📈 Get Seller History</span>
-                </button>
-                <button id="get-current-user-history-btn" class="ms-Button" style="margin-right: 10px;">
-                    <span class="ms-Button-label">👤 Get My History</span>
                 </button>
             </div>
 
