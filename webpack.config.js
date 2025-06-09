@@ -23,6 +23,7 @@ module.exports = async (env, options) => {
     },
     output: {
       clean: true,
+      publicPath: "/",
     },
     resolve: {
       extensions: [".ts", ".html", ".js"],
@@ -55,6 +56,7 @@ module.exports = async (env, options) => {
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
         chunks: ["polyfill", "taskpane"],
+        publicPath: "/",
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -79,6 +81,7 @@ module.exports = async (env, options) => {
         filename: "commands.html",
         template: "./src/commands/commands.html",
         chunks: ["polyfill", "commands"],
+        publicPath: "/",
       }),
     ],
     devServer: {
@@ -91,9 +94,9 @@ module.exports = async (env, options) => {
       },
       port: process.env.npm_package_config_dev_server_port || 3000,
       historyApiFallback: {
+        index: '/taskpane.html',
         rewrites: [
           { from: /^\/taskpane\/callback$/, to: '/taskpane.html' },
-          { from: /./, to: '/taskpane.html' }
         ]
       },
     },
