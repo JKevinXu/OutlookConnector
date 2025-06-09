@@ -18,7 +18,7 @@ export class AuthService {
 
     constructor(config?: OIDCConfig) {
         // Amazon federated configuration
-        const baseUrl = window.location.origin;
+        const baseUrl = this.getBaseUrl();
         const defaultConfig: OIDCConfig = {
             authority: 'https://idp.federate.amazon.com',
             clientId: 'amc-qbiz-aud',
@@ -421,6 +421,18 @@ export class AuthService {
             iat: profile.iat || Math.floor(Date.now() / 1000),
             exp: profile.exp || Math.floor(Date.now() / 1000) + 3600
         };
+    }
+
+    private getBaseUrl(): string {
+        const origin = window.location.origin;
+        const pathname = window.location.pathname;
+        
+        // Handle GitHub Pages repository hosting
+        if (origin.includes('github.io') && pathname.startsWith('/OutlookConnector')) {
+            return `${origin}/OutlookConnector`;
+        }
+        
+        return origin;
     }
 }
 
