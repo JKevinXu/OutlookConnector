@@ -59,10 +59,23 @@ export class SellerHistoryService {
         throw new Error('User not authenticated. Please sign in first.');
       }
 
-      // Get access token from auth service
-      const accessToken = await authService.getIdToken(); // Use ID token for now
+      return await this.makeApiCallWithRetry(params);
+      
+    } catch (error) {
+      console.error('❌ Error calling seller history API:', error);
+      throw error;
+    }
+  }
+
+  // Make API call with automatic retry on token expiration
+  private async makeApiCallWithRetry(params: SellerHistoryParams, retryCount = 0): Promise<SellerHistoryResponse> {
+    const maxRetries = 1; // Only retry once for token refresh
+    
+    try {
+      // Get access token from auth service (with automatic renewal)
+      const accessToken = await authService.getIdToken();
       if (!accessToken) {
-        throw new Error('No access token available. Please sign in again.');
+        throw new Error('Your session has expired and could not be renewed. Please sign in again to continue.');
       }
 
       console.log('🔍 Calling seller history API with hardcoded merchant ID:', this.MERCHANT_ID);
@@ -96,13 +109,31 @@ export class SellerHistoryService {
       console.log('📊 API Response status:', response.status);
       
       if (!response.ok) {
+        // Handle authentication/authorization errors with retry
+        if ((response.status === 401 || response.status === 403) && retryCount < maxRetries) {
+          console.log('🔄 Token may be expired, attempting renewal and retry...');
+          
+          try {
+            // Force token renewal
+            await authService.renewToken();
+            console.log('✅ Token renewed, retrying API call...');
+            
+            // Retry the API call with the new token
+            return await this.makeApiCallWithRetry(params, retryCount + 1);
+          } catch (renewError) {
+            console.error('❌ Token renewal failed during retry:', renewError);
+            throw new Error('Your session has expired and could not be renewed. Please sign in again.');
+          }
+        }
+        
+        // Handle other errors
         if (response.status === 502) {
-          const errorData: ErrorResponse = await response.json();
-          throw new Error(`Bad Gateway: ${errorData.message}`);
+          const errorData: ErrorResponse = await response.json().catch(() => ({ message: 'Bad Gateway' }));
+          throw new Error(`Server error: ${errorData.message}`);
         } else if (response.status === 401) {
-          throw new Error('Unauthorized: Please sign in again.');
+          throw new Error('Your session has expired. Please sign in again.');
         } else if (response.status === 403) {
-          throw new Error('Forbidden: You don\'t have permission to access this resource.');
+          throw new Error('Access denied. Your session may have expired or you may not have permission. Please sign in again.');
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -112,7 +143,10 @@ export class SellerHistoryService {
       return data;
       
     } catch (error) {
-      console.error('❌ Error calling seller history API:', error);
+      // If this is not a retry and the error suggests token issues, don't retry again
+      if (retryCount >= maxRetries) {
+        console.error('❌ API call failed after retry:', error);
+      }
       throw error;
     }
   }

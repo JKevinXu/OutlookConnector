@@ -71,6 +71,9 @@ async function initializeAuth() {
     console.log("🔐 Initializing authentication...");
     await authService.initialize();
     
+    // Set up token expiration event listeners
+    setupTokenEventListeners();
+    
     // Check if user is already authenticated
     const user = await authService.getUser();
     console.log("👤 Current user:", user);
@@ -89,6 +92,56 @@ async function initializeAuth() {
     console.error("❌ Authentication initialization failed:", error);
     showError("Authentication setup failed: " + error.message);
   }
+}
+
+// Set up event listeners for token-related events
+function setupTokenEventListeners() {
+  // Token expiration warning
+  authService.on('accessTokenExpiring', () => {
+    console.log('⏰ Token expiring...');
+    showInfo('Your session will expire soon. If you experience issues, please sign in again.');
+  });
+
+  // Token expired - show clear re-authentication prompt in Office Add-ins
+  authService.on('accessTokenExpired', () => {
+    console.log('❌ Token expired');
+    showError('Your session has expired. Please sign in again.');
+    showReAuthenticationPrompt();
+    updateAuthUI(); // This will show the login interface
+  });
+  
+  // Token expired from renewal failure
+  authService.on('tokenExpired', () => {
+    console.log('❌ Token expired - renewal not possible');
+    showError('Your session has expired. Please sign in again.');
+    showReAuthenticationPrompt();
+    updateAuthUI(); // This will show the login interface
+  });
+
+  // Token renewal successful (only in non-Office environments)
+  authService.on('tokenRenewed', (user) => {
+    console.log('✅ Token renewed successfully', user);
+    showSuccess('Session renewed successfully!');
+    updateAuthUI();
+  });
+
+  // Token renewal failed - user needs to login again
+  authService.on('loginRequired', () => {
+    console.log('🔐 Login required - redirecting to login');
+    showError('Your session has expired. Please sign in again.');
+    // Clear any existing user data
+    const existingUserInfo = document.getElementById("user-identity-section");
+    if (existingUserInfo) {
+      existingUserInfo.remove();
+    }
+    updateAuthUI();
+  });
+
+  // Silent renewal error
+  authService.on('silentRenewError', (error) => {
+    console.error('🔄 Silent renewal error:', error);
+    showError('Session renewal failed. You may need to sign in again.');
+  });
 }
 
 function updateAuthUI() {
@@ -157,14 +210,23 @@ async function handleLogin() {
   }
 }
 
-async function handleLogout() {
-  try {
-    console.log("🚪 Logout button clicked");
-    await authService.logout();
-  } catch (error) {
-    console.error("❌ Logout failed:", error);
-    showError("Logout failed. Please try again.");
-  }
+// Setup logout button
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      console.log('🚪 User requested logout');
+      showInfo('Signing out...');
+      
+      // Use signOut instead of logout for better Office Add-in compatibility
+      await authService.signOut();
+      showSuccess('Successfully signed out!');
+      updateAuthUI();
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      showError('Logout failed. Please try again.');
+    }
+  });
 }
 
 function showError(message: string) {
@@ -693,6 +755,105 @@ function showSuccess(message: string) {
   }, 3000);
 }
 
+// Helper function to show info messages
+function showInfo(message: string) {
+  const infoDiv = document.createElement("div");
+  infoDiv.className = "info-message";
+  infoDiv.style.cssText = `
+    background-color: #f0f9ff;
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 10px 20px;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+  `;
+  infoDiv.textContent = message;
+  
+  const container = document.getElementById("app-body") || document.body;
+  container.insertBefore(infoDiv, container.firstChild);
+  
+  // Remove info message after 4 seconds
+  setTimeout(() => {
+    if (infoDiv.parentNode) {
+      infoDiv.parentNode.removeChild(infoDiv);
+    }
+  }, 4000);
+}
+
+// Show a prominent re-authentication prompt
+function showReAuthenticationPrompt() {
+  // Remove any existing prompt
+  const existingPrompt = document.getElementById("reauth-prompt");
+  if (existingPrompt) {
+    existingPrompt.remove();
+  }
+
+  const promptDiv = document.createElement("div");
+  promptDiv.id = "reauth-prompt";
+  promptDiv.className = "reauth-prompt";
+  promptDiv.style.cssText = `
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: 2px solid #b45309;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 15px 20px;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease-out, pulse 2s infinite;
+  `;
+  
+  promptDiv.innerHTML = `
+    <div style="margin-bottom: 15px;">
+      <strong>🔐 Session Expired</strong>
+    </div>
+    <div style="margin-bottom: 20px; font-size: 14px; opacity: 0.9;">
+      Your authentication session has expired and couldn't be renewed automatically.<br>
+      Please sign in again to continue using the application.
+    </div>
+    <button id="reauth-btn" style="
+      background: white;
+      color: #d97706;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.2s ease;
+    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      🔓 Sign In Again
+    </button>
+  `;
+  
+  const container = document.getElementById("app-body") || document.body;
+  container.insertBefore(promptDiv, container.firstChild);
+  
+  // Add click handler for the re-authentication button
+  const reAuthBtn = document.getElementById("reauth-btn");
+  if (reAuthBtn) {
+    reAuthBtn.onclick = async () => {
+      try {
+        console.log("🔓 Re-authentication button clicked");
+        await authService.login();
+      } catch (error) {
+        console.error("❌ Re-authentication failed:", error);
+        showError("Re-authentication failed. Please try again.");
+      }
+    };
+  }
+  
+  // Auto-remove after 30 seconds if user doesn't act
+  setTimeout(() => {
+    if (promptDiv.parentNode) {
+      promptDiv.parentNode.removeChild(promptDiv);
+    }
+  }, 30000);
+}
+
 function initializeApiUI() {
   // Get Seller History button
   const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
@@ -726,11 +887,22 @@ async function handleGetSellerHistory() {
     const result = await sellerHistoryService.getSellerHistory(params);
     
     console.log("✅ API call successful:", result);
+    showSuccess("Seller history retrieved successfully!");
     displayApiResults(result);
 
   } catch (error) {
     console.error("❌ API call failed:", error);
-    showError(`API call failed: ${(error as Error).message}`);
+    const errorMessage = (error as Error).message;
+    
+    // Provide specific guidance for authentication errors
+    if (errorMessage.includes('session has expired') || 
+        errorMessage.includes('Authentication failed')) {
+      showError(`${errorMessage} Please click "Sign In" to continue.`);
+      updateAuthUI(); // Refresh the UI to show sign-in options
+    } else {
+      showError(`API call failed: ${errorMessage}`);
+    }
+    
     hideApiResults();
   } finally {
     showApiLoading(false);
@@ -753,11 +925,22 @@ async function handleGetCurrentUserHistory() {
     const result = await sellerHistoryService.getCurrentUserSellerHistory(marketplaceId);
     
     console.log("✅ API call successful:", result);
+    showSuccess("Your seller history retrieved successfully!");
     displayApiResults(result);
 
   } catch (error) {
     console.error("❌ API call failed:", error);
-    showError(`API call failed: ${(error as Error).message}`);
+    const errorMessage = (error as Error).message;
+    
+    // Provide specific guidance for authentication errors
+    if (errorMessage.includes('session has expired') || 
+        errorMessage.includes('Authentication failed')) {
+      showError(`${errorMessage} Please click "Sign In" to continue.`);
+      updateAuthUI(); // Refresh the UI to show sign-in options
+    } else {
+      showError(`API call failed: ${errorMessage}`);
+    }
+    
     hideApiResults();
   } finally {
     showApiLoading(false);

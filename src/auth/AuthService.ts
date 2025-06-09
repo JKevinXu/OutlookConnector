@@ -30,6 +30,9 @@ export class AuthService {
 
         const finalConfig = config || defaultConfig;
         
+        // Detect Office Add-in environment
+        const isOfficeAddIn = typeof Office !== 'undefined';
+        
         const settings: UserManagerSettings = {
             authority: finalConfig.authority,
             client_id: finalConfig.clientId,
@@ -39,9 +42,15 @@ export class AuthService {
             scope: finalConfig.scope,
             stateStore: new WebStorageStateStore({ store: window.localStorage }),
             loadUserInfo: true,
-            automaticSilentRenew: true,
-            includeIdTokenInSilentRenew: true,
-            monitorSession: true,
+            
+            // Disable automatic silent renewal in Office Add-in environments
+            automaticSilentRenew: !isOfficeAddIn,
+            includeIdTokenInSilentRenew: !isOfficeAddIn,
+            monitorSession: !isOfficeAddIn,
+            
+            // Shorter expiration notification time for better UX
+            accessTokenExpiringNotificationTime: 300, // 5 minutes before expiration
+            
             filterProtocolClaims: true,
         };
 
@@ -189,15 +198,161 @@ export class AuthService {
         }
     }
 
-    // Get ID token
+    // Get ID token with automatic renewal if expired
     public async getIdToken(): Promise<string | null> {
         try {
-            const user = await this.userManager.getUser();
+            let user = await this.userManager.getUser();
+            
+            // Check if token is expired or about to expire (within 5 minutes)
+            if (!user || this.isTokenExpired(user)) {
+                console.log('🔄 Token expired or about to expire, attempting renewal...');
+                try {
+                    await this.renewToken();
+                    user = await this.userManager.getUser();
+                } catch (renewError) {
+                    console.error('❌ Token renewal failed:', renewError);
+                    // Token renewal failed, user needs to re-authenticate
+                    this.authState.isAuthenticated = false;
+                    this.authState.user = null;
+                    this.emit('tokenExpired');
+                    return null;
+                }
+            }
+            
             return user?.id_token || null;
         } catch (error) {
             console.error('❌ Error getting ID token:', error);
             return null;
         }
+    }
+
+    // Check if token is expired or about to expire
+    private isTokenExpired(user: User): boolean {
+        if (!user) {
+            console.log('🚫 Token check: No user object');
+            return true;
+        }
+        
+        // Try to get expiration from user.expires_at first
+        let expiresAt = user.expires_at;
+        
+        // If expires_at is not set (common with implicit flow), decode the ID token
+        if (!expiresAt && user.id_token) {
+            try {
+                // Decode the JWT token to get the exp claim
+                const tokenParts = user.id_token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    expiresAt = payload.exp;
+                    console.log('🔍 Extracted expiration from ID token:', expiresAt);
+                }
+            } catch (error) {
+                console.log('❌ Failed to decode ID token for expiration:', error);
+            }
+        }
+        
+        if (!expiresAt) {
+            console.log('🚫 Token check: No expiration time available');
+            console.log('🔍 User object keys:', Object.keys(user));
+            console.log('🔍 User expires_at:', user.expires_at);
+            console.log('🔍 Has ID token:', !!user.id_token);
+            return true;
+        }
+        
+        const isOfficeAddIn = typeof Office !== 'undefined';
+        // In Office Add-ins, only check for actual expiration since renewal isn't supported
+        // In regular web apps, use a 1-minute buffer for proactive renewal
+        const expirationBuffer = isOfficeAddIn ? 0 : 60;
+        const currentTime = Math.floor(Date.now() / 1000);
+        const timeUntilExpiry = expiresAt - currentTime;
+        const willExpireSoon = timeUntilExpiry <= expirationBuffer;
+        
+        console.log('🕐 Token expiration check:', {
+            isOfficeAddIn: isOfficeAddIn,
+            currentTime: currentTime,
+            expiresAt: expiresAt,
+            timeUntilExpiry: timeUntilExpiry,
+            timeUntilExpiryMinutes: Math.round(timeUntilExpiry / 60),
+            expirationBuffer: expirationBuffer,
+            willExpireSoon: willExpireSoon,
+            currentTimeReadable: new Date(currentTime * 1000).toISOString(),
+            expiresAtReadable: new Date(expiresAt * 1000).toISOString()
+        });
+        
+        return willExpireSoon;
+    }
+
+    // Enhanced token renewal with retry logic
+    public async renewToken(): Promise<void> {
+        const isOfficeAddIn = typeof Office !== 'undefined';
+        
+        // In Office Add-in environments, silent renewal is not supported
+        if (isOfficeAddIn) {
+            console.log('⚠️ Office Add-in environment detected - silent renewal not supported');
+            console.log('🔄 Token expired. User needs to sign in again.');
+            
+            // Clear auth state and require interactive login
+            this.authState.isAuthenticated = false;
+            this.authState.user = null;
+            this.authState.error = 'Your session has expired. Please sign in again.';
+            this.emit('tokenExpired');
+            throw new AuthenticationError('Your session has expired. Please sign in again to continue.', 'TOKEN_EXPIRED');
+        }
+        
+        try {
+            console.log('🔄 Attempting token renewal...');
+            const renewedUser = await this.userManager.signinSilent();
+            
+            if (renewedUser) {
+                console.log('✅ Token renewed successfully');
+                this.authState.user = this.extractUserProfile(renewedUser);
+                this.emit('tokenRenewed', this.authState.user);
+            }
+        } catch (error) {
+            console.error('❌ Token renewal failed:', error);
+            
+            // Handle specific renewal errors
+            if (error.message?.includes('Frame window timed out')) {
+                console.log('🕒 Silent renewal timed out');
+                this.handleRenewalTimeout();
+            } else if (error.message?.includes('login_required') || 
+                       error.message?.includes('interaction_required')) {
+                console.log('🔐 Interactive login required');
+                this.handleInteractionRequired();
+            } else {
+                console.log('❌ Unexpected renewal error');
+                this.handleRenewalError();
+            }
+            
+            throw new AuthenticationError('Your session has expired. Please sign in again to continue.', 'TOKEN_EXPIRED');
+        }
+    }
+
+    // Handle silent renewal timeout (common in Office Add-ins)
+    private handleRenewalTimeout(): void {
+        console.log('🔄 Handling renewal timeout...');
+        this.authState.isAuthenticated = false;
+        this.authState.user = null;
+        this.authState.error = 'Your session has expired. Please sign in again.';
+        this.emit('tokenExpired');
+    }
+
+    // Handle cases where user interaction is required
+    private handleInteractionRequired(): void {
+        console.log('🔐 User interaction required for renewal...');
+        this.authState.isAuthenticated = false;
+        this.authState.user = null;
+        this.authState.error = 'Please sign in again to continue.';
+        this.emit('loginRequired');
+    }
+
+    // Handle other renewal errors
+    private handleRenewalError(): void {
+        console.log('❌ General renewal error occurred...');
+        this.authState.isAuthenticated = false;
+        this.authState.user = null;
+        this.authState.error = 'Authentication failed. Please sign in again.';
+        this.emit('authenticationFailed');
     }
 
     // Logout
@@ -210,15 +365,36 @@ export class AuthService {
             throw new AuthenticationError('Logout failed', 'LOGOUT_ERROR');
         }
     }
-
-    // Renew token silently
-    public async renewToken(): Promise<void> {
+    
+    // Sign out (clear local state without redirect - better for Office Add-ins)
+    public async signOut(): Promise<void> {
         try {
-            console.log('🔄 Renewing token...');
-            await this.userManager.signinSilent();
+            console.log('🚪 Signing out and clearing local state...');
+            
+            // Clear the user manager state
+            await this.userManager.removeUser();
+            
+            // Clear auth state
+            this.authState.isAuthenticated = false;
+            this.authState.user = null;
+            this.authState.error = null;
+            this.authState.isLoading = false;
+            
+            // Clear any additional storage items related to OIDC
+            const storageKeys = Object.keys(localStorage);
+            storageKeys.forEach(key => {
+                if (key.startsWith('oidc.') || key.includes('auth') || key.includes('token')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // Emit event
+            this.emit('userSignedOut');
+            
+            console.log('✅ Successfully signed out');
         } catch (error) {
-            console.error('❌ Token renewal error:', error);
-            throw new AuthenticationError('Token renewal failed', 'RENEWAL_ERROR');
+            console.error('❌ Sign out error:', error);
+            // Don't throw error - we want to clear state even if there are issues
         }
     }
 
