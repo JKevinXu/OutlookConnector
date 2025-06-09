@@ -154,8 +154,12 @@ export class AuthService {
             const user = await this.userManager.signinRedirectCallback();
             console.log('✅ Callback handled successfully:', user);
             
-            // Clean up URL
-            window.history.replaceState(null, '', window.location.pathname);
+            // Clean up URL only if history API is available
+            if (window.history && typeof window.history.replaceState === 'function') {
+                window.history.replaceState(null, '', window.location.pathname);
+            } else {
+                console.log('ℹ️ History API not available in this environment (Office Add-in)');
+            }
         } catch (error) {
             console.error('❌ Callback error:', error);
             this.authState.error = error instanceof Error ? error.message : 'Callback failed';
