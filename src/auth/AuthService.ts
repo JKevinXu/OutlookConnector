@@ -22,8 +22,8 @@ export class AuthService {
         const defaultConfig: OIDCConfig = {
             authority: 'https://idp.federate.amazon.com',
             clientId: 'amc-qbiz-aud',
-            redirectUri: `${baseUrl}/taskpane/callback`,
-            postLogoutRedirectUri: `${baseUrl}/taskpane/callback`,
+            redirectUri: `${baseUrl}/taskpane.html`,
+            postLogoutRedirectUri: `${baseUrl}/taskpane.html`,
             scope: 'openid profile email',
             responseType: 'id_token' // Implicit flow - TODO: should use auth code with PKCE, and upgrade from oidc-client to oidc-client-ts
         };

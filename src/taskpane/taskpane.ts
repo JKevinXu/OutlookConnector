@@ -33,30 +33,31 @@ function handleCallbackRouting(): boolean {
   console.log("🌍 Current path:", currentPath);
   console.log("🔗 Current hash:", hash);
   
-  if (currentPath === '/taskpane/callback' || hash.includes('id_token=')) {
+  // Check if this is an authentication callback by looking for id_token in URL hash
+  if (hash.includes('id_token=')) {
     console.log("🎯 Processing authentication callback...");
     
     // Let oidc-client handle the callback
     authService.handleCallback().then((user) => {
       console.log("✅ Callback processed successfully:", user);
       
-      // Redirect to main taskpane
-      const baseUrl = `${window.location.protocol}//${window.location.host}`;
-      const targetUrl = `${baseUrl}/taskpane.html`;
-      console.log("🔄 Redirecting to:", targetUrl);
+      // Clean up the URL by removing the hash
+      if (window.history && typeof window.history.replaceState === 'function') {
+        const cleanUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+        window.history.replaceState(null, '', cleanUrl);
+      }
       
-      // Use replace to avoid adding to history
-      window.location.replace(targetUrl);
+      // Update UI to show authenticated state
+      updateAuthUI();
     }).catch((error) => {
       console.error("❌ Callback processing failed:", error);
       showError(`Authentication failed: ${error.message}`);
       
-      // Still redirect to main page on error
-      const baseUrl = `${window.location.protocol}//${window.location.host}`;
-      const targetUrl = `${baseUrl}/taskpane.html`;
-      setTimeout(() => {
-        window.location.replace(targetUrl);
-      }, 2000);
+      // Clean up URL even on error
+      if (window.history && typeof window.history.replaceState === 'function') {
+        const cleanUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+        window.history.replaceState(null, '', cleanUrl);
+      }
     });
     
     return true; // Indicate we're processing a callback
