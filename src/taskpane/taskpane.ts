@@ -140,28 +140,11 @@ function updateHeader(isAuthenticated: boolean) {
   const headerContent = document.querySelector('.header-content');
   if (!headerContent) return;
 
-  if (isAuthenticated && currentUser) {
-    headerContent.innerHTML = `
-      <span class="header-icon">🛒</span>
-      <h1 class="ms-font-xl">Seller Email Assistant</h1>
-      <div class="user-info">
-        <span class="user-avatar">👤</span>
-        <span class="user-name">${currentUser.name}</span>
-        <button id="logout-btn" class="ms-Button ms-Button--default logout-btn">Sign Out</button>
-      </div>
-    `;
-
-    // Add logout button handler
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-      logoutBtn.onclick = handleLogout;
-    }
-  } else {
-    headerContent.innerHTML = `
-      <span class="header-icon">🛒</span>
-      <h1 class="ms-font-xl">Seller Email Assistant</h1>
-    `;
-  }
+  // Keep header simple - just show the title
+  headerContent.innerHTML = `
+    <span class="header-icon">🛒</span>
+    <h1 class="ms-font-xl">Seller Email Assistant</h1>
+  `;
 }
 
 async function handleLogin() {
@@ -613,21 +596,13 @@ async function callAzureOpenAI(emailContent: string): Promise<string> {
 */
 
 async function displayUserIdentity() {
-  const resultsContainer = document.getElementById("results-container");
-  if (!resultsContainer) return;
+  const greetingContainer = document.getElementById("user-greeting-container");
+  if (!greetingContainer) return;
 
   try {
     const user = await authService.getUser();
-    const accessToken = await authService.getAccessToken();
-    const idToken = await authService.getIdToken();
     
     if (!user) return;
-
-    // Decode JWT claims if ID token is available
-    let jwtClaims = null;
-    if (idToken) {
-      jwtClaims = decodeJWT(idToken);
-    }
 
     // Clear previous user info
     const existingUserInfo = document.getElementById("user-identity-section");
@@ -635,162 +610,19 @@ async function displayUserIdentity() {
       existingUserInfo.remove();
     }
 
-    // Create user identity section
+    // Create simple user greeting section
     const userIdentitySection = document.createElement("div");
     userIdentitySection.id = "user-identity-section";
-    userIdentitySection.className = "user-identity-panel";
+    userIdentitySection.className = "user-greeting-panel";
     
     userIdentitySection.innerHTML = `
-      <div class="user-identity-header">
-        <h3>👤 User Identity Information</h3>
-        <span class="identity-status">✅ Authenticated</span>
-      </div>
-      
-      <div class="identity-grid">
-        <div class="identity-item">
-          <span class="identity-label">📧 Email:</span>
-          <span class="identity-value">${user.email || 'Not provided'}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">👤 Name:</span>
-          <span class="identity-value">${user.name}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">🆔 Subject ID:</span>
-          <span class="identity-value">${user.sub}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">✅ Email Verified:</span>
-          <span class="identity-value">${user.email_verified ? '✅ Yes' : '❌ No'}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">🏢 Organization:</span>
-          <span class="identity-value">${user.org || 'Not provided'}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">🎭 Roles:</span>
-          <span class="identity-value">${user.roles && user.roles.length > 0 ? user.roles.join(', ') : 'No roles assigned'}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">⏰ Issued At:</span>
-          <span class="identity-value">${new Date(user.iat * 1000).toLocaleString()}</span>
-        </div>
-        
-        <div class="identity-item">
-          <span class="identity-label">⏳ Expires At:</span>
-          <span class="identity-value">${new Date(user.exp * 1000).toLocaleString()}</span>
-        </div>
-      </div>
-      
-      ${jwtClaims ? `
-      <div class="jwt-claims-section">
-        <h4>🔍 Raw JWT Claims</h4>
-        <div class="jwt-claims-container">
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Audience (aud):</span>
-            <span class="jwt-value">${jwtClaims.aud || 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Subject (sub):</span>
-            <span class="jwt-value">${jwtClaims.sub || 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Issuer (iss):</span>
-            <span class="jwt-value">${jwtClaims.iss || 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Not Before (nbf):</span>
-            <span class="jwt-value">${jwtClaims.nbf ? formatTimestamp(jwtClaims.nbf) : 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Issued At (iat):</span>
-            <span class="jwt-value">${jwtClaims.iat ? formatTimestamp(jwtClaims.iat) : 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Expires At (exp):</span>
-            <span class="jwt-value">${jwtClaims.exp ? formatTimestamp(jwtClaims.exp) : 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Auth Time:</span>
-            <span class="jwt-value">${jwtClaims.auth_time ? formatTimestamp(jwtClaims.auth_time) : 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Nonce:</span>
-            <span class="jwt-value">${jwtClaims.nonce || 'N/A'}</span>
-          </div>
-          <div class="jwt-claim-item">
-            <span class="jwt-label">JWT ID (jti):</span>
-            <span class="jwt-value">${jwtClaims.jti || 'N/A'}</span>
-          </div>
-          ${jwtClaims['https://aws.amazon.com/tags'] ? `
-          <div class="jwt-claim-item">
-            <span class="jwt-label">AWS Tags:</span>
-            <span class="jwt-value">${JSON.stringify(jwtClaims['https://aws.amazon.com/tags'], null, 2)}</span>
-          </div>
-          ` : ''}
-          <div class="jwt-claim-item">
-            <span class="jwt-label">Token Purpose:</span>
-            <span class="jwt-value">${jwtClaims.federate_token_purpose || 'N/A'}</span>
-          </div>
-        </div>
-        
-        <div class="jwt-raw-section">
-          <h5>📋 Complete JWT Payload</h5>
-          <textarea class="jwt-raw-textarea" readonly>${JSON.stringify(jwtClaims, null, 2)}</textarea>
-          <button class="token-btn" onclick="copyToClipboard('${JSON.stringify(jwtClaims, null, 2).replace(/'/g, "\\'")}')">📋 Copy Claims</button>
-        </div>
-      </div>
-      ` : ''}
-      
-      <div class="token-section">
-        <h4>🔑 Token Information</h4>
-        <div class="token-item">
-          <span class="token-label">Access Token:</span>
-          <span class="token-value">${accessToken ? '✅ Present' : '❌ Not available'}</span>
-          ${accessToken ? `<button class="token-btn" onclick="copyToClipboard('${accessToken}')">📋 Copy</button>` : ''}
-        </div>
-        <div class="token-item">
-          <span class="token-label">ID Token:</span>
-          <span class="token-value">${idToken ? '✅ Present' : '❌ Not available'}</span>
-          ${idToken ? `<button class="token-btn" onclick="copyToClipboard('${idToken}')">📋 Copy</button>` : ''}
-        </div>
-      </div>
-      
-      <div class="auth-actions">
-        <button id="refresh-identity" class="ms-Button ms-Button--default">🔄 Refresh Identity</button>
-        <button id="renew-token" class="ms-Button ms-Button--default">🔑 Renew Token</button>
+      <div class="user-greeting">
+        <h2>Hi ${user.name || user.email || 'User'}! 👋</h2>
       </div>
     `;
 
-    // Insert at the beginning of results container
-    resultsContainer.insertBefore(userIdentitySection, resultsContainer.firstChild);
-
-    // Add event handlers
-    const refreshBtn = document.getElementById("refresh-identity");
-    if (refreshBtn) {
-      refreshBtn.onclick = () => {
-        displayUserIdentity();
-      };
-    }
-
-    const renewBtn = document.getElementById("renew-token");
-    if (renewBtn) {
-      renewBtn.onclick = async () => {
-        try {
-          await authService.renewToken();
-          displayUserIdentity();
-          showSuccess("Token renewed successfully!");
-        } catch (error) {
-          showError("Failed to renew token: " + error.message);
-        }
-      };
-    }
+    // Insert into the dedicated greeting container
+    greetingContainer.appendChild(userIdentitySection);
 
   } catch (error) {
     console.error("❌ Error displaying user identity:", error);

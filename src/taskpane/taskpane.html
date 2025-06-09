@@ -42,35 +42,9 @@
 
     <!-- Main app content - Now always visible for testing -->
     <main id="app-body" class="summarizer-main">
-        <!-- Action button -->
-        <div class="action-section">
-            <button id="run" class="ms-Button ms-Button--primary summarize-btn">
-                <span class="ms-Button-label">📧 Analyze Seller Email</span>
-            </button>
-        </div>
-
-        <!-- Results container -->
-        <div id="results-container" class="results-section">
-            <div id="item-subject" class="email-info"></div>
-        </div>
-
-        <!-- Authentication Section -->
-        <div class="auth-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-            <h3>🔐 Authentication</h3>
-            <div id="auth-status" style="margin: 10px 0;">
-                <span id="auth-message">Not authenticated</span>
-            </div>
-            <button id="login-btn" class="ms-Button ms-Button--primary" style="display: none;">
-                <span class="ms-Button-label">🔐 Sign In</span>
-            </button>
-            <button id="logout-btn" class="ms-Button" style="display: none;">
-                <span class="ms-Button-label">🚪 Sign Out</span>
-            </button>
-            <div id="user-info" style="display: none; margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 3px;">
-                <p><strong>Name:</strong> <span id="user-name"></span></p>
-                <p><strong>Email:</strong> <span id="user-email"></span></p>
-                <p><strong>Organization:</strong> <span id="user-org"></span></p>
-            </div>
+        <!-- User Greeting Section -->
+        <div id="user-greeting-container" class="user-greeting-section">
+            <!-- User greeting will be inserted here by JavaScript -->
         </div>
 
         <!-- API Section -->
@@ -100,6 +74,11 @@
                 <h4>Results:</h4>
                 <pre id="api-output" style="white-space: pre-wrap; font-size: 12px;"></pre>
             </div>
+        </div>
+
+        <!-- Results container -->
+        <div id="results-container" class="results-section">
+            <div id="item-subject" class="email-info"></div>
         </div>
     </main>
 
@@ -169,52 +148,6 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-        }
-
-        .action-section {
-            text-align: center;
-            margin: 30px 20px 20px 20px;
-            padding: 30px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            order: 1;
-        }
-
-        .summarize-btn {
-            font-size: 18px;
-            padding: 16px 32px;
-            min-width: 240px;
-            background-color: #0078d4;
-            border-color: #0078d4;
-            border-radius: 8px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: all 0.2s ease;
-        }
-
-        .summarize-btn:hover {
-            background-color: #106ebe;
-            border-color: #106ebe;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 110, 190, 0.3);
-        }
-
-        .browser-instructions {
-            text-align: center;
-            margin: 20px;
-            padding: 20px;
-            background: #fff8e1;
-            border-radius: 8px;
-            border: 1px solid #ffc107;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .browser-instructions p {
-            margin: 0;
-            color: #856404;
-            font-size: 14px;
-            line-height: 1.6;
         }
 
         .results-section {
@@ -353,18 +286,9 @@
                 padding: 0 10px;
             }
             
-            .action-section,
-            .results-section,
-            .browser-instructions,
-            .demo-info {
+            .results-section {
                 margin: 15px 10px;
                 padding: 20px 15px;
-            }
-            
-            .summarize-btn {
-                min-width: 200px;
-                font-size: 16px;
-                padding: 14px 24px;
             }
             
             .header-content h1 {
@@ -372,371 +296,31 @@
             }
         }
 
-        /* Authentication UI Styles */
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-left: auto;
-            color: white;
-        }
-
-        .user-avatar {
-            font-size: 20px;
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .logout-btn:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .error-message {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 10px 20px;
-            font-size: 14px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Login button in sideload message */
-        .sideload-content .ms-Button {
-            font-size: 16px;
-            padding: 12px 24px;
-            min-width: 180px;
-            background-color: #0078d4;
-            border-color: #0078d4;
-            color: white;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .sideload-content .ms-Button:hover {
-            background-color: #106ebe;
-            border-color: #106ebe;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 110, 190, 0.3);
-        }
-
-        /* Loading and authentication states */
-        .auth-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #0078d4;
-            font-style: italic;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .auth-loading::before {
-            content: "🔄";
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* User Identity Panel Styles */
-        .user-identity-panel {
+        /* User greeting styles */
+        .user-greeting-panel {
             background: white;
             border: 1px solid #e1e5e9;
             border-radius: 12px;
-            padding: 25px;
-            margin: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            font-size: 14px;
-        }
-
-        .user-identity-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 20px;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
         }
 
-        .user-identity-header h3 {
+        .user-greeting h2 {
             margin: 0;
             color: #0078d4;
-            font-size: 18px;
+            font-size: 24px;
             font-weight: 600;
         }
 
-        .identity-status {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
+        /* User greeting section styles */
+        .user-greeting-section {
+            margin: 20px 20px 0 20px;
         }
 
-        .identity-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .identity-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #0078d4;
-        }
-
-        .identity-label {
-            font-weight: 600;
-            color: #323130;
-            min-width: 120px;
-        }
-
-        .identity-value {
-            color: #605e5c;
-            text-align: right;
-            word-break: break-all;
-            margin-left: 10px;
-        }
-
-        .token-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .token-section h4 {
-            margin: 0 0 15px 0;
-            color: #0078d4;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .token-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: #f1f3f4;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-
-        .token-label {
-            font-weight: 500;
-            color: #323130;
-        }
-
-        .token-value {
-            color: #605e5c;
-            margin: 0 10px;
-        }
-
-        .token-btn {
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .token-btn:hover {
-            background-color: #106ebe;
-        }
-
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #e1e5e9;
-        }
-
-        .auth-actions .ms-Button {
-            flex: 1;
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-
-        .success-message {
-            background-color: #f0f9f4;
-            border: 1px solid #86efac;
-            color: #059669;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 10px 20px;
-            font-size: 14px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        /* JWT Claims Styles */
-        .jwt-claims-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .jwt-claims-section h4 {
-            margin: 0 0 15px 0;
-            color: #0078d4;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .jwt-claims-section h5 {
-            margin: 15px 0 10px 0;
-            color: #323130;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .jwt-claims-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .jwt-claim-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 8px 12px;
-            background: #fafbfc;
-            border-radius: 6px;
-            border-left: 3px solid #0078d4;
-            font-size: 13px;
-        }
-
-        .jwt-label {
-            font-weight: 600;
-            color: #323130;
-            min-width: 120px;
-            flex-shrink: 0;
-        }
-
-        .jwt-value {
-            color: #605e5c;
-            text-align: right;
-            margin-left: 10px;
-            word-break: break-all;
-            white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-
-        .jwt-raw-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e1e5e9;
-        }
-
-        .jwt-raw-textarea {
-            width: 100%;
-            height: 200px;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            background: white;
-            resize: vertical;
-            margin-bottom: 10px;
-        }
-
-        .jwt-raw-textarea:focus {
-            outline: none;
-            border-color: #0078d4;
-            box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-        }
-
-        /* Responsive design for JWT claims */
-        @media (max-width: 600px) {
-            .user-identity-panel {
-                margin: 15px 10px;
-                padding: 20px 15px;
-            }
-            
-            .identity-item {
-                flex-direction: column;
-                align-items: flex-start;
-                text-align: left;
-            }
-            
-            .identity-value {
-                text-align: left;
-                margin-left: 0;
-                margin-top: 5px;
-            }
-            
-            .token-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .auth-actions {
-                flex-direction: column;
-            }
-            
-            .jwt-claim-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .jwt-value {
-                text-align: left;
-                margin-left: 0;
-                margin-top: 5px;
-            }
-            
-            .jwt-raw-textarea {
-                height: 150px;
-                font-size: 10px;
-            }
+        .user-greeting-section:empty {
+            display: none;
         }
     </style>
 </body>
