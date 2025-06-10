@@ -32,8 +32,8 @@ interface ErrorResponse {
 const API_CONFIG = {
   prod: {
     baseUrl: (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-      ? '/api'  // Use webpack proxy during development on localhost
-      : 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/seller-history-prod-auth', // Direct API call for all environments
+      ? '/api/seller-history-prod-auth'  // Use webpack proxy during development on localhost
+      : 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/beta/seller-history-prod-auth', // Direct API call using correct beta stage
     region: 'us-west-2'
   }
 };
@@ -89,7 +89,8 @@ export class SellerHistoryService {
         ...(params.marketplaceId && { marketplaceId: params.marketplaceId })
       });
       
-      const url = `${config.baseUrl}/seller-history?${queryParams.toString()}`;
+      // Use base URL directly since it already includes the full path
+      const url = `${config.baseUrl}?${queryParams.toString()}`;
       console.log('📡 API URL:', url);
       
       const requestOptions = {

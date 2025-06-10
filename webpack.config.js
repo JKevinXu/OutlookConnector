@@ -104,7 +104,7 @@ module.exports = async (env, options) => {
       proxy: [
         {
           context: ['/api'],
-          target: 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/seller-history-prod-auth',
+          target: 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/beta',
           secure: true,
           changeOrigin: true,
           logLevel: 'debug',
