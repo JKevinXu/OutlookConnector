@@ -32,8 +32,8 @@ interface ErrorResponse {
 const API_CONFIG = {
   prod: {
     baseUrl: (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-      ? '/api/seller-history-prod-auth'  // Use webpack proxy during development on localhost
-      : 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/beta/seller-history-prod-auth', // Direct API call using correct beta stage
+      ? '/api/seller-search-metrics'  // Use webpack proxy during development on localhost
+      : 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/beta/seller-search-metrics', // Direct API call using correct beta stage
     region: 'us-west-2'
   }
 };
