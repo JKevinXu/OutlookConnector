@@ -49,6 +49,9 @@ function handleCallbackRouting(): boolean {
       
       // Update UI to show authenticated state
       updateAuthUI();
+      
+      // Initialize API UI after successful authentication
+      initializeApiUI();
     }).catch((error) => {
       console.error("❌ Callback processing failed:", error);
       showError(`Authentication failed: ${error.message}`);
