@@ -33,8 +33,8 @@ const API_CONFIG = {
   prod: {
     baseUrl: (typeof window !== 'undefined' && window.location.hostname === 'localhost')
       ? '/api'  // Use webpack proxy during development on localhost
-      : 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://g3kt5l83j8.execute-api.us-east-1.amazonaws.com/prod'), // Use AllOrigins proxy for GitHub Pages
-    region: 'us-east-1'
+      : 'https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com/seller-history-prod-auth', // Direct API call for all environments
+    region: 'us-west-2'
   }
 };
 
@@ -45,7 +45,7 @@ interface SellerHistoryParams {
 
 export class SellerHistoryService {
   private environment: 'prod' = 'prod';
-  private readonly MERCHANT_ID = '7956983745'; // Hardcoded merchant ID
+  private readonly MERCHANT_ID = '7489395755'; // Hardcoded merchant ID
 
   constructor() {
     this.environment = 'prod';
@@ -92,7 +92,6 @@ export class SellerHistoryService {
       const url = `${config.baseUrl}/seller-history?${queryParams.toString()}`;
       console.log('📡 API URL:', url);
       
-      // Try different approaches to handle CORS
       const requestOptions = {
         method: 'GET',
         headers: {
