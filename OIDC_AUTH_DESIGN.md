@@ -1,7 +1,7 @@
 # 🔐 OIDC Authentication Design Document
 
 ## 📋 Overview
-Add OpenID Connect authentication to the Seller Email Assistant using a custom OIDC client to identify users, enable personalization, and secure AI features.
+Add OpenID Connect authentication to the AM Personal Assistant using a custom OIDC client to identify users, enable personalization, and secure AI features.
 
 ## 🎯 Goals
 - **User Identity**: Authenticate and identify users accessing the add-in
@@ -112,7 +112,7 @@ classDiagram
 ```typescript
 interface OIDCConfig {
   authority: string;           // https://auth.provider.com
-  clientId: string;           // seller-email-assistant
+  clientId: string;           // am-personal-assistant
   redirectUri: string;        // https://localhost:3000/callback
   scope: string;              // "openid profile email"
   responseType: string;       // "code"
@@ -131,7 +131,7 @@ export class AuthService {
   constructor() {
     const settings: UserManagerSettings = {
       authority: 'https://your-auth-provider.com',
-      client_id: 'seller-email-assistant',
+      client_id: 'am-personal-assistant',
       redirect_uri: 'https://localhost:3000/callback',
       response_type: 'id_token', // Implicit flow
       scope: 'openid profile email',

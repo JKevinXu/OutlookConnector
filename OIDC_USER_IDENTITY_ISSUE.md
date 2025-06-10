@@ -1,7 +1,7 @@
 # 🔐 Implement OIDC Authentication for User Identity
 
 ## 📋 **Issue Summary**
-Add OpenID Connect (OIDC) authentication to the Seller Email Assistant to retrieve and manage user identity information. This will enable user-specific features, personalization, and usage tracking.
+Add OpenID Connect (OIDC) authentication to the AM Personal Assistant to retrieve and manage user identity information. This will enable user-specific features, personalization, and usage tracking.
 
 ## 🎯 **Goal & Business Requirements**
 - **User Identification**: Identify which user is accessing the add-in
@@ -42,7 +42,7 @@ Office.auth.getAccessToken({
 // Generic OIDC implementation
 const oidcConfig = {
   authority: 'https://your-oidc-provider.com',
-  client_id: 'seller-email-assistant',
+  client_id: 'am-personal-assistant',
   redirect_uri: 'https://localhost:3000/callback',
   scope: 'openid profile email'
 };
