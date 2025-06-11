@@ -158,6 +158,11 @@ function updateAuthUI() {
   // Show/hide main functionality based on auth state
   const appBody = document.getElementById("app-body");
   const sideloadMsg = document.getElementById("sideload-msg");
+  const authLoading = document.getElementById("auth-loading");
+  const authSignin = document.getElementById("auth-signin");
+  
+  // Hide loading state
+  if (authLoading) authLoading.style.display = "none";
   
   if (isAuthenticated) {
     if (sideloadMsg) sideloadMsg.style.display = "none";
@@ -168,21 +173,20 @@ function updateAuthUI() {
     displayUserIdentity();
   } else {
     if (appBody) appBody.style.display = "none";
-    if (sideloadMsg) {
-      sideloadMsg.style.display = "block";
-      
-      // Show login button
-      const loginBtn = document.getElementById("login-btn");
-      if (loginBtn) {
-        loginBtn.style.display = "block";
-        loginBtn.onclick = () => {
-          console.log("🔑 Login button clicked");
-          authService.login().catch(error => {
-            console.error("❌ Login failed:", error);
-            showError("Login failed: " + error.message);
-          });
-        };
-      }
+    if (sideloadMsg) sideloadMsg.style.display = "block";
+    if (authSignin) authSignin.style.display = "block";
+    
+    // Show login button
+    const loginBtn = document.getElementById("login-btn");
+    if (loginBtn) {
+      loginBtn.style.display = "block";
+      loginBtn.onclick = () => {
+        console.log("🔑 Login button clicked");
+        authService.login().catch(error => {
+          console.error("❌ Login failed:", error);
+          showError("Login failed: " + error.message);
+        });
+      };
     }
     
     // Remove any existing user identity panel

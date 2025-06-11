@@ -21,19 +21,25 @@
 </head>
 
 <body class="ms-font-m ms-Fabric">
-    <!-- Sideload message (hidden when app loads) -->
-    <section id="sideload-msg" class="sideload-section" style="display: none;">
+    <!-- Sideload message (visible when app loads) -->
+    <section id="sideload-msg" class="sideload-section" style="display: block;">
         <div class="sideload-content">
-            <h2 class="ms-font-l">🔐 Please sign in to continue</h2>
-            <p class="ms-font-s">Authentication is required to use the AM Personal Assistant.</p>
-            <button id="login-btn" class="ms-Button ms-Button--primary" style="margin-top: 15px;">
-                <span class="ms-Button-label">🔐 Sign In</span>
-            </button>
+            <div id="auth-loading" style="text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 10px;">⏳</div>
+                <p class="ms-font-s">Checking authentication...</p>
+            </div>
+            <div id="auth-signin" style="display: none;">
+                <h2 class="ms-font-l">🔐 Please sign in to continue</h2>
+                <p class="ms-font-s">Authentication is required to use the AM Personal Assistant.</p>
+                <button id="login-btn" class="ms-Button ms-Button--primary" style="margin-top: 15px;">
+                    <span class="ms-Button-label">🔐 Sign In</span>
+                </button>
+            </div>
         </div>
     </section>
 
-    <!-- Main app content - Now always visible for testing -->
-    <main id="app-body" class="summarizer-main">
+    <!-- Main app content - Hidden initially until authentication succeeds -->
+    <main id="app-body" class="summarizer-main" style="display: none;">
         <!-- User Greeting Section -->
         <div id="user-greeting-container" class="user-greeting-section">
             <!-- User greeting will be inserted here by JavaScript -->
