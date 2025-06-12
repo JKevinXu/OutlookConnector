@@ -66,7 +66,7 @@
                     "id": "TaskPaneRuntime",
                     "type": "general",
                     "code": {
-                        "page": "https://jkevinxu.github.io/OutlookConnector/taskpane.html"
+                        "page": "{{BASE_URL}}taskpane.html"
                     },
                     "lifetime": "short",
                     "actions": [
@@ -82,8 +82,8 @@
                     "id": "CommandsRuntime",
                     "type": "general",
                     "code": {
-                        "page": "https://jkevinxu.github.io/OutlookConnector/commands.html",
-                        "script": "https://jkevinxu.github.io/OutlookConnector/commands.js"
+                        "page": "{{BASE_URL}}commands.html",
+                        "script": "{{BASE_URL}}commands.js"
                     },
                     "lifetime": "short",
                     "actions": [
@@ -109,15 +109,15 @@
                                     "icons": [
                                         {
                                             "size": 16,
-                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-16.png"
+                                            "url": "{{BASE_URL}}assets/icon-16.png"
                                         },
                                         {
                                             "size": 32,
-                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png"
+                                            "url": "{{BASE_URL}}assets/icon-32.png"
                                         },
                                         {
                                             "size": 80,
-                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png"
+                                            "url": "{{BASE_URL}}assets/icon-80.png"
                                         }
                                     ],
                                     "controls": [
@@ -128,15 +128,15 @@
                                             "icons": [
                                                 {
                                                     "size": 16,
-                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-16.png"
+                                                    "url": "{{BASE_URL}}assets/icon-16.png"
                                                 },
                                                 {
                                                     "size": 32,
-                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png"
+                                                    "url": "{{BASE_URL}}assets/icon-32.png"
                                                 },
                                                 {
                                                     "size": 80,
-                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png"
+                                                    "url": "{{BASE_URL}}assets/icon-80.png"
                                                 }
                                             ],
                                             "supertip": {
