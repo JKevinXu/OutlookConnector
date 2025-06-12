@@ -165,7 +165,7 @@ export class AuthService {
             
             // Clean up URL only if history API is available
             if (window.history && typeof window.history.replaceState === 'function') {
-            window.history.replaceState(null, '', window.location.pathname);
+                window.history.replaceState(null, '', window.location.pathname);
             } else {
                 console.log('ℹ️ History API not available in this environment (Office Add-in)');
             }
@@ -365,7 +365,7 @@ export class AuthService {
             throw new AuthenticationError('Logout failed', 'LOGOUT_ERROR');
         }
     }
-
+    
     // Sign out (clear local state without redirect - better for Office Add-ins)
     public async signOut(): Promise<void> {
         try {

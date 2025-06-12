@@ -3,10 +3,9 @@
 const devCerts = require("office-addin-dev-certs");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const config = require("./config");
 
-const urlDev = config.development;
-const urlProd = config.production;
+const urlDev = "https://localhost:3000/";
+const urlProd = "https://jkevinxu.github.io/OutlookConnector/"; // Updated for GitHub Pages
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -71,8 +70,11 @@ module.exports = async (env, options) => {
             from: "manifest*.json",
             to: "[name]" + "[ext]",
             transform(content) {
-              const baseUrl = dev ? urlDev : urlProd;
-              return content.toString().replace(/\{\{BASE_URL\}\}/g, baseUrl);
+              if (dev) {
+                return content;
+              } else {
+                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+              }
             },
           },
         ],
