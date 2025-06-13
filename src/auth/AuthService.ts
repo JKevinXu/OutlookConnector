@@ -25,7 +25,9 @@ export class AuthService {
             redirectUri: `${baseUrl}/taskpane.html`,
             postLogoutRedirectUri: `${baseUrl}/taskpane.html`,
             scope: 'openid profile email',
-            responseType: 'id_token' // Implicit flow - TODO: should use auth code with PKCE, and upgrade from oidc-client to oidc-client-ts
+            responseType: 'id_token', // Implicit flow - TODO: should use auth code with PKCE, and upgrade from oidc-client to oidc-client-ts
+            popupWindowFeatures: 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes',
+            popupWindowTarget: 'amazon-auth-popup'
         };
 
         const finalConfig = config || defaultConfig;
@@ -42,6 +44,11 @@ export class AuthService {
             scope: finalConfig.scope,
             stateStore: new WebStorageStateStore({ store: window.localStorage }),
             loadUserInfo: true,
+            
+            // Use popup window for authentication
+            popup_redirect_uri: finalConfig.redirectUri,
+            popup_window_features: finalConfig.popupWindowFeatures,
+            popup_window_target: finalConfig.popupWindowTarget,
             
             // Disable automatic silent renewal in Office Add-in environments
             automaticSilentRenew: !isOfficeAddIn,
@@ -147,7 +154,8 @@ export class AuthService {
             this.authState.error = null;
             console.log('🚀 Starting login...');
             
-            await this.userManager.signinRedirect();
+            // Use popup window for authentication
+            await this.userManager.signinPopup();
         } catch (error) {
             console.error('❌ Login error:', error);
             this.authState.error = error instanceof Error ? error.message : 'Login failed';
@@ -160,7 +168,7 @@ export class AuthService {
     public async handleCallback(): Promise<void> {
         try {
             console.log('🔄 Handling authentication callback...');
-            const user = await this.userManager.signinRedirectCallback();
+            const user = await this.userManager.signinPopupCallback();
             console.log('✅ Callback handled successfully:', user);
             
             // Clean up URL only if history API is available

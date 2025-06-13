@@ -9,6 +9,8 @@ export interface OIDCConfig {
   postLogoutRedirectUri?: string;
   scope: string;
   responseType: string;
+  popupWindowFeatures?: string;
+  popupWindowTarget?: string;
 }
 
 export interface UserProfile {

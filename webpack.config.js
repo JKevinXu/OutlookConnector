@@ -89,6 +89,7 @@ module.exports = async (env, options) => {
     devServer: {
       headers: {
         "Access-Control-Allow-Origin": "*",
+        "Content-Security-Policy": "frame-ancestors 'self' https://*.amazon.com; default-src 'self' https://*.amazon.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
       },
       server: {
         type: "https",
