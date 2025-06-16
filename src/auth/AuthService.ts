@@ -47,8 +47,8 @@ export class AuthService {
             
             // Use popup window for authentication
             popup_redirect_uri: finalConfig.redirectUri,
-            popup_window_features: finalConfig.popupWindowFeatures,
-            popup_window_target: finalConfig.popupWindowTarget,
+            popupWindowFeatures: finalConfig.popupWindowFeatures,
+            popupWindowTarget: finalConfig.popupWindowTarget,
             
             // Disable automatic silent renewal in Office Add-in environments
             automaticSilentRenew: !isOfficeAddIn,
@@ -79,6 +79,11 @@ export class AuthService {
             this.authState.user = this.extractUserProfile(user);
             this.authState.isLoading = false;
             this.authState.error = null;
+            console.log('🎯 Auth state updated:', {
+                isAuthenticated: this.authState.isAuthenticated,
+                user: this.authState.user?.name,
+                hasUser: !!this.authState.user
+            });
             this.emit('userLoaded', this.authState.user);
         });
 
@@ -153,11 +158,33 @@ export class AuthService {
             this.authState.isLoading = true;
             this.authState.error = null;
             console.log('🚀 Starting login...');
+            console.log('🔧 OIDC Settings:', {
+                authority: this.userManager.settings.authority,
+                client_id: this.userManager.settings.client_id,
+                redirect_uri: this.userManager.settings.redirect_uri,
+                popup_redirect_uri: this.userManager.settings.popup_redirect_uri
+            });
             
             // Use popup window for authentication
-            await this.userManager.signinPopup();
+            console.log('🔄 Opening popup window...');
+            const user = await this.userManager.signinPopup();
+            console.log('✅ Popup login successful:', user);
+            
+            // Update auth state immediately after successful popup
+            this.authState.isAuthenticated = true;
+            this.authState.user = this.extractUserProfile(user);
+            this.authState.isLoading = false;
+            this.authState.error = null;
+            
+            console.log('🔄 Emitting authSuccess event for UI update...');
+            this.emit('authSuccess', this.authState.user);
         } catch (error) {
             console.error('❌ Login error:', error);
+            console.error('❌ Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             this.authState.error = error instanceof Error ? error.message : 'Login failed';
             this.authState.isLoading = false;
             throw new AuthenticationError('Login failed', 'LOGIN_ERROR');

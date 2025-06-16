@@ -129,6 +129,12 @@ function setupTokenEventListeners() {
     updateAuthUI();
   });
 
+  // Listen for successful authentication to update UI immediately
+  authService.on('authSuccess', (user) => {
+    console.log('🎉 Authentication successful, updating UI...', user);
+    updateAuthUI();
+  });
+
   // Token renewal failed - user needs to login again
   authService.on('loginRequired', () => {
     console.log('🔐 Login required - redirecting to login');
@@ -150,7 +156,15 @@ function setupTokenEventListeners() {
 
 function updateAuthUI() {
   const isAuthenticated = authService.isAuthenticated();
+  const authState = authService.getAuthState();
   console.log("🎨 Updating auth UI. Authenticated:", isAuthenticated);
+  console.log("🔍 Auth state details:", {
+    isAuthenticated: authState.isAuthenticated,
+    hasUser: !!authState.user,
+    userName: authState.user?.name,
+    isLoading: authState.isLoading,
+    error: authState.error
+  });
 
   // Update header to show user info or login
   updateHeader(isAuthenticated);
@@ -160,6 +174,13 @@ function updateAuthUI() {
   const sideloadMsg = document.getElementById("sideload-msg");
   const authLoading = document.getElementById("auth-loading");
   const authSignin = document.getElementById("auth-signin");
+  
+  console.log("🔍 DOM elements found:", {
+    appBody: !!appBody,
+    sideloadMsg: !!sideloadMsg,
+    authLoading: !!authLoading,
+    authSignin: !!authSignin
+  });
   
   // Hide loading state
   if (authLoading) authLoading.style.display = "none";
