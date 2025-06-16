@@ -14,7 +14,7 @@ async function getHttpsOptions() {
 
 module.exports = async (env, options) => {
   const dev = options.mode === "development";
-  const publicPath = dev ? "/" : "/OutlookConnector/";
+  const publicPath = dev ? "/" : "/";
   
   const config = {
     devtool: "source-map",
