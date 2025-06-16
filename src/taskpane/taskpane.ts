@@ -171,6 +171,9 @@ function updateAuthUI() {
     // Display user identity in the panel
     console.log("🆔 Displaying user identity panel...");
     displayUserIdentity();
+    
+    // Setup debug buttons for authenticated users
+    setupDebugButtons();
   } else {
     if (appBody) appBody.style.display = "none";
     if (sideloadMsg) sideloadMsg.style.display = "block";
@@ -186,6 +189,36 @@ function updateAuthUI() {
           console.error("❌ Login failed:", error);
           showError("Login failed: " + error.message);
         });
+      };
+    }
+    
+    // Add debug clear auth button functionality
+    const clearAuthBtn = document.getElementById("clear-auth-btn");
+    if (clearAuthBtn) {
+      clearAuthBtn.onclick = async () => {
+        console.log("🗑️ Clear auth button clicked");
+        try {
+          await authService.signOut();
+          
+          // Also manually clear any remaining OIDC data
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('oidc.') || key.includes('auth') || key.includes('token')) {
+              localStorage.removeItem(key);
+              console.log('🗑️ Cleared:', key);
+            }
+          });
+          
+          showSuccess("Auth data cleared! You can now test fresh login.");
+          
+          // Refresh the page to reset state
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          
+        } catch (error) {
+          console.error("❌ Error clearing auth:", error);
+          showError("Error clearing auth data: " + error.message);
+        }
       };
     }
     
@@ -1280,5 +1313,54 @@ function showApiLoading(isLoading: boolean) {
       label.textContent = isLoading ? "⏳ Loading..." : "📈 Get Seller Metrics";
     }
     (getSellerHistoryBtn as HTMLButtonElement).disabled = isLoading;
+  }
+}
+
+// Setup debug buttons for authenticated users
+function setupDebugButtons() {
+  // Clear auth button (when logged in)
+  const clearAuthLoggedInBtn = document.getElementById("clear-auth-logged-in-btn");
+  if (clearAuthLoggedInBtn) {
+    clearAuthLoggedInBtn.onclick = async () => {
+      console.log("🗑️ Clear auth (logged in) button clicked");
+      try {
+        await authService.signOut();
+        
+        // Also manually clear any remaining OIDC data
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('oidc.') || key.includes('auth') || key.includes('token')) {
+            localStorage.removeItem(key);
+            console.log('🗑️ Cleared:', key);
+          }
+        });
+        
+        showSuccess("Auth data cleared! Refreshing to test fresh login...");
+        
+        // Refresh the page to reset state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        
+      } catch (error) {
+        console.error("❌ Error clearing auth:", error);
+        showError("Error clearing auth data: " + error.message);
+      }
+    };
+  }
+  
+  // Regular sign out button
+  const signOutBtn = document.getElementById("sign-out-btn");
+  if (signOutBtn) {
+    signOutBtn.onclick = async () => {
+      console.log("🚪 Sign out button clicked");
+      try {
+        await authService.signOut();
+        showSuccess("Signed out successfully!");
+        updateAuthUI();
+      } catch (error) {
+        console.error("❌ Error signing out:", error);
+        showError("Error signing out: " + error.message);
+      }
+    };
   }
 }

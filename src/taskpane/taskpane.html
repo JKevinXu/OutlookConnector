@@ -34,6 +34,14 @@
                 <button id="login-btn" class="ms-Button ms-Button--primary" style="margin-top: 15px;">
                     <span class="ms-Button-label">🔐 Sign In</span>
                 </button>
+                
+                <!-- Debug section for development -->
+                <div style="margin-top: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; font-size: 12px;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">🔧 Development Tools</p>
+                    <button id="clear-auth-btn" class="ms-Button" style="background: #dc3545; color: white; font-size: 11px; padding: 6px 12px;">
+                        <span class="ms-Button-label">🗑️ Clear Auth Data</span>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
@@ -167,6 +175,17 @@
         <!-- Results container -->
         <div id="results-container" class="results-section">
             <div id="item-subject" class="email-info"></div>
+        </div>
+        
+        <!-- Debug panel for authenticated users -->
+        <div id="debug-panel" style="margin-top: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; font-size: 12px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">🔧 Development Tools</p>
+            <button id="clear-auth-logged-in-btn" class="ms-Button" style="background: #dc3545; color: white; font-size: 11px; padding: 6px 12px; margin-right: 10px;">
+                <span class="ms-Button-label">🗑️ Clear Auth & Test Login</span>
+            </button>
+            <button id="sign-out-btn" class="ms-Button" style="background: #6c757d; color: white; font-size: 11px; padding: 6px 12px;">
+                <span class="ms-Button-label">🚪 Sign Out</span>
+            </button>
         </div>
     </main>
 

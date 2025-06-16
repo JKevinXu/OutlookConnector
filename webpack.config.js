@@ -89,7 +89,7 @@ module.exports = async (env, options) => {
     devServer: {
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Content-Security-Policy": "frame-ancestors 'self' https://*.amazon.com; default-src 'self' https://*.amazon.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+        "Content-Security-Policy": "frame-ancestors 'self' https://localhost:* http://localhost:* https://*.amazon.com https://*.office.com https://*.office365.com https://*.microsoftonline.com https://*.officeapps.live.com https://*.outlook.com https://outlook.live.com https://outlook.office.com https://outlook.office365.com; default-src 'self' https://localhost:* http://localhost:* https://*.amazon.com https://*.office.com https://*.office365.com https://appsforoffice.microsoft.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://localhost:* http://localhost:* https://appsforoffice.microsoft.com; style-src 'self' 'unsafe-inline' https://localhost:* http://localhost:* https://res-1.cdn.office.net; connect-src 'self' https://localhost:* http://localhost:* https://*.amazon.com https://*.microsoft.com https://*.office.com https://*.office365.com https://*.microsoftonline.com https://graph.microsoft.com https://login.microsoftonline.com https://appsforoffice.microsoft.com;"
       },
       server: {
         type: "https",
