@@ -1,4 +1,4 @@
-# �� AI-Powered Outlook Email Summarizer
+# 🤖 AI-Powered Outlook Email Summarizer
 
 An intelligent Outlook add-in that leverages Large Language Models (LLMs) to automatically summarize email content, helping users quickly understand key points, action items, and important information.
 
@@ -198,28 +198,292 @@ Open browser dev tools to see console logs:
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🌟 Future Enhancements
+## 🙏 Acknowledgments
 
-- [ ] Support for more LLM providers
-- [ ] Sentiment analysis
-- [ ] Email categorization
-- [ ] Reply generation
-- [ ] Multi-language support
-- [ ] Offline mode with cached summaries
-- [ ] Integration with Teams/SharePoint
+- Microsoft Office Add-ins team for the excellent documentation
+- OpenAI for the GPT API
+- Anthropic for the Claude API
+- The open-source community for webpack and other tools
 
-## 📞 Support
+---
 
-For issues and questions:
-- Check the troubleshooting section
-- Review Office Add-ins documentation
-- Open GitHub issues for bugs or feature requests # Last updated: Tue Jun 10 13:27:34 CST 2025
+# Build & Deployment Guide
+
+## Overview
+
+This guide explains the build and deployment process for the Outlook Connector application, common issues, and troubleshooting steps.
+
+## 🏗️ Build Process
+
+### Command Execution
+```bash
+npm run build  # Executes: webpack --mode production
+```
+
+### What Happens During Build
+
+1. **Webpack Configuration Loading**
+   - Loads `webpack.config.js`
+   - Sets `options.mode = "production"`
+   - Configures `publicPath = "/OutlookConnector/"`
+
+2. **Entry Points Processing**
+   ```javascript
+   entry: {
+     polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
+     taskpane: ["./src/taskpane/taskpane.ts", "./src/taskpane/taskpane.html"],
+     commands: "./src/commands/commands.ts",
+   }
+   ```
+
+3. **Module Transformations**
+   - **TypeScript → JavaScript**: `.ts` files compiled via Babel
+   - **HTML Processing**: Templates processed with asset injection
+   - **Asset Optimization**: Images copied and optimized
+
+4. **Plugin Execution**
+   - **HtmlWebpackPlugin**: Generates `taskpane.html` with correct script tags
+   - **CopyWebpackPlugin**: Copies assets and transforms manifest URLs
+
+5. **Production Optimizations**
+   - **Minification**: JavaScript compressed
+   - **Tree Shaking**: Unused code removed
+   - **Code Splitting**: Separate bundles for different concerns
+
+### Build Output Structure
+```
+dist/
+├── taskpane.html              # Processed HTML with correct paths
+├── taskpane.js                # Compiled & minified JavaScript (322KB)
+├── taskpane.js.map            # Source map for debugging
+├── polyfill.js                # Browser compatibility bundle (203KB)
+├── commands.html              # Commands page
+├── commands.js                # Commands bundle
+├── manifest.json              # Production URLs
+├── [hash].css                 # Compiled CSS
+└── assets/                    # Static assets
+    ├── icon-80.png
+    ├── icon-128.png
+    └── logo-filled.png
+```
+
+## 🚀 Deployment Process
+
+### GitHub Actions Workflow (`deploy.yml`)
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build project
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+```
+
+### Deployment Flow
+
+1. **Trigger**: Push to `main` branch
+2. **Build Job**: 
+   - Install dependencies with `npm ci`
+   - Build project with `npm run build`
+   - Upload `dist/` folder as artifact
+3. **Deploy Job**:
+   - Wait for build completion
+   - Deploy artifact to GitHub Pages
+4. **Result**: Live at `https://jkevinxu.github.io/OutlookConnector/`
+
+## ⚠️ Common Issues & Solutions
+
+### Issue 1: 404 Errors on GitHub Pages
+
+**Symptoms:**
+- Build successful but pages return 404
+- Assets not loading correctly
+
+**Causes:**
+- Incorrect `publicPath` configuration
+- Conflicting deployment workflows
+
+**Solution:**
+```javascript
+// webpack.config.js
+const publicPath = dev ? "/" : "/OutlookConnector/";
+```
+
+### Issue 2: Conflicting Deployment Workflows
+
+**Problem:** Multiple workflow files deploying different content
+
+**Files to check:**
+- `.github/workflows/deploy.yml` ✅ (Keep this)
+- `.github/workflows/static.yml` ❌ (Remove this)
+
+**Key Differences:**
+
+| `deploy.yml` ✅ | `static.yml` ❌ |
+|-----------------|-----------------|
+| Builds project with `npm run build` | No build step |
+| Deploys `./dist` (built files) | Deploys `.` (entire repo) |
+| ~2MB deployment | ~500MB deployment |
+| Compiled JavaScript | Raw TypeScript |
+| Production URLs | Development URLs |
+
+### Issue 3: Manifest URL Issues
+
+**Problem:** Office add-in manifest contains localhost URLs in production
+
+**Solution:** Webpack transforms URLs during build:
+```javascript
+transform(content) {
+  if (dev) {
+    return content;
+  } else {
+    return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+  }
+}
+```
+
+- **Development**: `https://localhost:3000/`
+- **Production**: `https://jkevinxu.github.io/OutlookConnector/`
+
+## 🔍 Troubleshooting
+
+### Check Deployment Status
+
+1. **GitHub Actions**
+   - Go to repository → Actions tab
+   - Look for "Deploy to GitHub Pages" workflow
+   - ✅ Green = Success, ❌ Red = Failed
+
+2. **GitHub Pages Settings**
+   - Repository → Settings → Pages
+   - Source should be "GitHub Actions"
+   - Check deployment status and URL
+
+3. **Test URLs**
+   ```bash
+   # Should return 200 OK
+   curl -I https://jkevinxu.github.io/OutlookConnector/taskpane.html
+   curl -I https://jkevinxu.github.io/OutlookConnector/taskpane.js
+   ```
+
+### Force Redeploy
+
+**Method 1: Re-run from GitHub UI**
+- Go to Actions → Select workflow run → Re-run jobs
+
+**Method 2: Trigger new deployment**
+```bash
+git commit --allow-empty -m "Trigger deployment"
+git push origin main
+```
+
+### Debug Build Issues
+
+**Check build output:**
+```bash
+npm run build
+# Look for errors in webpack output
+# Check generated files in dist/
+```
+
+**Common build errors:**
+- TypeScript compilation errors
+- Missing dependencies
+- Asset path issues
+
+## 📋 Best Practices
+
+### Development Workflow
+
+1. **Local Development**
+   ```bash
+   npm run dev-server  # Local development with hot reload
+   ```
+
+2. **Test Build Locally**
+   ```bash
+   npm run build  # Test production build
+   ```
+
+3. **Deploy**
+   ```bash
+   git add .
+   git commit -m "Your changes"
+   git push origin main  # Triggers deployment
+   ```
+
+### File Structure
+
+- **Source files**: Keep in `src/` directory
+- **Static assets**: Keep in `assets/` directory
+- **Build output**: Generated in `dist/` (don't commit)
+- **Workflows**: One deployment workflow only
+
+### Configuration
+
+- **Development**: `publicPath = "/"`
+- **Production**: `publicPath = "/OutlookConnector/"`
+- **URLs**: Transform localhost → production in manifest
+
+## 🎯 Key Takeaways
+
+1. **Build process is essential** - Browsers can't execute TypeScript directly
+2. **Only one deployment workflow** - Multiple workflows cause conflicts
+3. **Correct publicPath** - Must match GitHub Pages URL structure
+4. **URL transformation** - Manifest must use production URLs
+5. **Test locally first** - Always verify build works before deploying
+
+## 📞 Quick Reference
+
+**Build Commands:**
+- `npm run build` - Production build
+- `npm run build:dev` - Development build
+- `npm run dev-server` - Local development server
+
+**Deployment URL:**
+- `https://jkevinxu.github.io/OutlookConnector/taskpane.html`
+
+**Key Files:**
+- `webpack.config.js` - Build configuration
+- `.github/workflows/deploy.yml` - Deployment workflow
+- `dist/` - Generated build output
