@@ -363,62 +363,125 @@ export async function run() {
   // Clear previous content
   insertAt.innerHTML = "";
   
-  // Display email info
-  let subjectLabel = document.createElement("b");
-  subjectLabel.textContent = "📧 Subject: ";
-  insertAt.appendChild(subjectLabel);
-  insertAt.appendChild(document.createElement("br"));
-  insertAt.appendChild(document.createTextNode(item.subject || "No subject"));
-  insertAt.appendChild(document.createElement("br"));
-  insertAt.appendChild(document.createElement("br"));
+  // Create email info container
+  const emailInfoContainer = document.createElement("div");
+  emailInfoContainer.style.cssText = `
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  `;
+  
+  // Display email title
+  const titleElement = document.createElement("div");
+  titleElement.innerHTML = `<strong>📧 Subject:</strong> ${item.subject || "No subject"}`;
+  titleElement.style.cssText = `
+    font-size: 16px;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(titleElement);
+  
+  // Display sender information
+  const senderElement = document.createElement("div");
+  if (item.from && item.from.emailAddress) {
+    senderElement.innerHTML = `<strong>👤 From:</strong> ${item.from.displayName || item.from.emailAddress} &lt;${item.from.emailAddress}&gt;`;
+  } else {
+    senderElement.innerHTML = `<strong>👤 From:</strong> Information not available`;
+  }
+  senderElement.style.cssText = `
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #666;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(senderElement);
+  
+  insertAt.appendChild(emailInfoContainer);
 
-  // Get email body for summarization
+  // Get email body for display and summarization
   try {
     // Get the email body
     item.body.getAsync("text", async (result) => {
       if (result.status === Office.AsyncResultStatus.Succeeded) {
         const emailBody = result.value;
         
-        // Display first 100 characters preview
-        let previewLabel = document.createElement("b");
-        previewLabel.textContent = "📄 Email Preview (first 100 chars): ";
-        insertAt.appendChild(previewLabel);
-        insertAt.appendChild(document.createElement("br"));
+        // Extract first 20 words
+        const words = emailBody.trim().split(/\s+/);
+        const first20Words = words.slice(0, 20).join(' ');
+        const hasMore = words.length > 20;
         
-        let previewText = document.createElement("p");
-        previewText.textContent = emailBody.substring(0, 100) + (emailBody.length > 100 ? "..." : "");
-        previewText.style.backgroundColor = "#f8f9fa";
-        previewText.style.padding = "10px";
-        previewText.style.borderRadius = "5px";
-        previewText.style.fontStyle = "italic";
-        insertAt.appendChild(previewText);
+        // Display first 20 words
+        const previewElement = document.createElement("div");
+        previewElement.innerHTML = `<strong>📄 First 20 words:</strong><br/>${first20Words}${hasMore ? '...' : ''}`;
+        previewElement.style.cssText = `
+          background-color: #fff;
+          border: 1px solid #dee2e6;
+          border-radius: 6px;
+          padding: 15px;
+          margin-bottom: 15px;
+          font-style: italic;
+          line-height: 1.4;
+        `;
+        insertAt.appendChild(previewElement);
         
-        // Display original length
-        let lengthInfo = document.createElement("p");
-        lengthInfo.innerHTML = `<strong>📊 Total email length:</strong> ${emailBody.length} characters`;
+        // Display total length info
+        const lengthInfo = document.createElement("div");
+        lengthInfo.innerHTML = `<strong>📊 Email Stats:</strong> ${words.length} words, ${emailBody.length} characters`;
+        lengthInfo.style.cssText = `
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 20px;
+        `;
         insertAt.appendChild(lengthInfo);
         
         // Add summarize button
-        let summarizeBtn = document.createElement("button");
+        const summarizeBtn = document.createElement("button");
         summarizeBtn.textContent = "🤖 Summarize with AI";
         summarizeBtn.className = "ms-Button ms-Button--primary";
+        summarizeBtn.style.cssText = `
+          margin-bottom: 20px;
+          padding: 12px 24px;
+          font-size: 14px;
+        `;
         summarizeBtn.onclick = () => summarizeEmail(emailBody, insertAt);
         insertAt.appendChild(summarizeBtn);
         
         // Add divider
-        insertAt.appendChild(document.createElement("hr"));
+        const divider = document.createElement("hr");
+        divider.style.cssText = `
+          margin: 20px 0;
+          border: none;
+          border-top: 1px solid #dee2e6;
+        `;
+        insertAt.appendChild(divider);
         
       } else {
-        let errorMsg = document.createElement("p");
+        const errorMsg = document.createElement("div");
         errorMsg.textContent = "Could not access email body";
-        errorMsg.style.color = "red";
+        errorMsg.style.cssText = `
+          color: #dc3545;
+          background-color: #f8d7da;
+          border: 1px solid #f5c6cb;
+          padding: 12px;
+          border-radius: 6px;
+          margin-bottom: 15px;
+        `;
         insertAt.appendChild(errorMsg);
       }
     });
   } catch (error) {
-    let errorMsg = document.createElement("p");
+    const errorMsg = document.createElement("div");
     errorMsg.textContent = `Error: ${error.message}`;
-    errorMsg.style.color = "red";
+    errorMsg.style.cssText = `
+      color: #dc3545;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    `;
     insertAt.appendChild(errorMsg);
   }
 }
@@ -446,8 +509,10 @@ export async function runStandalone() {
   insertAt.innerHTML = "";
   console.log("🧹 Cleared previous content");
   
-  // Use the actual email content directly
+  // Mock email data
   const mockEmailSubject = "I want to onboard FBA";
+  const mockSenderName = "Marcus Chen";
+  const mockSenderEmail = "marcus.chen@techgearsolutions.com";
   const mockEmailBody = `Subject: I want to onboard FBA
 
 Dear Amazon FBA Support Team,
@@ -488,46 +553,88 @@ Email: marcus.chen@techgearsolutions.com
 Phone: (602) 555-7892
 Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
   
-  // Display email info
-  let subjectLabel = document.createElement("b");
-  subjectLabel.textContent = "📧 Subject: ";
-  insertAt.appendChild(subjectLabel);
-  insertAt.appendChild(document.createElement("br"));
-  insertAt.appendChild(document.createTextNode(mockEmailSubject));
-  insertAt.appendChild(document.createElement("br"));
-  insertAt.appendChild(document.createElement("br"));
-
-  // Display first 100 characters preview
-  let previewLabel = document.createElement("b");
-  previewLabel.textContent = "📄 Email Preview (first 100 chars): ";
-  insertAt.appendChild(previewLabel);
-  insertAt.appendChild(document.createElement("br"));
+  // Create email info container
+  const emailInfoContainer = document.createElement("div");
+  emailInfoContainer.style.cssText = `
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  `;
   
-  let previewText = document.createElement("p");
-  previewText.textContent = mockEmailBody.substring(0, 100) + (mockEmailBody.length > 100 ? "..." : "");
-  previewText.style.backgroundColor = "#f8f9fa";
-  previewText.style.padding = "15px";
-  previewText.style.borderRadius = "8px";
-  previewText.style.fontStyle = "italic";
-  previewText.style.border = "1px solid #e1e5e9";
-  previewText.style.marginTop = "10px";
-  insertAt.appendChild(previewText);
+  // Display email title
+  const titleElement = document.createElement("div");
+  titleElement.innerHTML = `<strong>📧 Subject:</strong> ${mockEmailSubject}`;
+  titleElement.style.cssText = `
+    font-size: 16px;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(titleElement);
+  
+  // Display sender information  
+  const senderElement = document.createElement("div");
+  senderElement.innerHTML = `<strong>👤 From:</strong> ${mockSenderName} &lt;${mockSenderEmail}&gt;`;
+  senderElement.style.cssText = `
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #666;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(senderElement);
+  
+  insertAt.appendChild(emailInfoContainer);
 
-  // Display original length
-  let lengthInfo = document.createElement("p");
-  lengthInfo.innerHTML = `<strong>📊 Total email length:</strong> ${mockEmailBody.length} characters`;
+  // Extract first 20 words from email body
+  const words = mockEmailBody.trim().split(/\s+/);
+  const first20Words = words.slice(0, 20).join(' ');
+  const hasMore = words.length > 20;
+  
+  // Display first 20 words
+  const previewElement = document.createElement("div");
+  previewElement.innerHTML = `<strong>📄 First 20 words:</strong><br/>${first20Words}${hasMore ? '...' : ''}`;
+  previewElement.style.cssText = `
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    font-style: italic;
+    line-height: 1.4;
+  `;
+  insertAt.appendChild(previewElement);
+
+  // Display email stats
+  const lengthInfo = document.createElement("div");
+  lengthInfo.innerHTML = `<strong>📊 Email Stats:</strong> ${words.length} words, ${mockEmailBody.length} characters`;
+  lengthInfo.style.cssText = `
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  `;
   insertAt.appendChild(lengthInfo);
   
   // Add summarize button
-  let summarizeBtn = document.createElement("button");
+  const summarizeBtn = document.createElement("button");
   summarizeBtn.textContent = "🤖 Summarize with AI";
   summarizeBtn.className = "ms-Button ms-Button--primary";
-  summarizeBtn.style.marginTop = "15px";
+  summarizeBtn.style.cssText = `
+    margin-bottom: 20px;
+    padding: 12px 24px;
+    font-size: 14px;
+  `;
   summarizeBtn.onclick = () => summarizeEmail(mockEmailBody, insertAt);
   insertAt.appendChild(summarizeBtn);
   
   // Add divider
-  insertAt.appendChild(document.createElement("hr"));
+  const divider = document.createElement("hr");
+  divider.style.cssText = `
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #dee2e6;
+  `;
+  insertAt.appendChild(divider);
 }
 
 async function summarizeEmail(emailContent: string, container: HTMLElement) {
