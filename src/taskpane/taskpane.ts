@@ -343,6 +343,10 @@ async function initializeApp() {
   // Initialize API UI
   initializeApiUI();
   
+  if (isInOfficeContext) {
+    await run(); // Automatically analyze current email
+  }
+  
   console.log("✅ Application initialized");
 }
 
