@@ -487,3 +487,394 @@ npm run build
 - `webpack.config.js` - Build configuration
 - `.github/workflows/deploy.yml` - Deployment workflow
 - `dist/` - Generated build output
+
+# Outlook Add-in: Email Conversation Thread Access
+
+## Overview
+
+This document outlines the capabilities and limitations of accessing email conversation threads in Outlook add-ins using Office.js APIs, and provides solutions using Microsoft Graph API.
+
+## 🚨 Current Office.js Limitations
+
+### ❌ What Office.js **CANNOT** Do for Conversation Threads
+
+Office.js for Outlook add-ins has **very limited support** for accessing conversation threads:
+
+- ❌ **Get all emails in a conversation thread**
+- ❌ **Navigate to parent/child emails in thread** 
+- ❌ **Access previous messages in the same conversation**
+- ❌ **Retrieve conversation history**
+- ❌ **List related emails with same subject**
+
+### ✅ What Office.js **CAN** Do
+
+Office.js primarily provides access to the **current email item** only:
+
+```typescript
+// Access current email item
+const item = Office.context.mailbox.item;
+
+// Available properties
+const subject = item.subject;
+const body = await getEmailBody();
+const sender = item.from;
+const recipients = item.to;
+
+// Basic conversation info (limited)
+const conversationId = item.conversationId; // May not always be available
+```
+
+## 🔧 Solution: Microsoft Graph API Integration
+
+To access conversation threads, you need to combine **Office.js** with **Microsoft Graph API**.
+
+### Prerequisites
+
+1. **Permissions in manifest.json**:
+```json
+{
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "MailboxItem.Read.User",
+          "type": "Delegated"
+        },
+        {
+          "name": "Mail.Read",
+          "type": "Delegated"
+        }
+      ]
+    }
+  }
+}
+```
+
+2. **Authentication Setup**: Your add-in must support Microsoft Graph authentication.
+
+### Implementation Strategy
+
+#### 1. Get Conversation Emails via Graph API
+
+```typescript
+/**
+ * Fetch all emails in the same conversation thread
+ */
+async function getConversationEmails(): Promise<any[]> {
+  try {
+    // Get access token for Graph API
+    const tokenResult = await OfficeRuntime.auth.getAccessToken({
+      allowSignInPrompt: true,
+      allowConsentPrompt: true
+    });
+    
+    const currentItem = Office.context.mailbox.item;
+    const conversationId = currentItem.conversationId;
+    
+    if (!conversationId) {
+      console.warn('No conversation ID available for current email');
+      return [];
+    }
+    
+    // Call Graph API to get conversation emails
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/me/messages?$filter=conversationId eq '${conversationId}'&$orderby=receivedDateTime desc`,
+      {
+        headers: {
+          'Authorization': `Bearer ${tokenResult}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Graph API request failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.value || [];
+    
+  } catch (error) {
+    console.error('Error fetching conversation emails:', error);
+    return [];
+  }
+}
+```
+
+#### 2. Alternative: Search by Subject
+
+```typescript
+/**
+ * Find related emails by subject (fallback approach)
+ */
+async function getEmailsBySubject(subject: string): Promise<any[]> {
+  try {
+    const token = await OfficeRuntime.auth.getAccessToken();
+    
+    // Clean and encode subject for search
+    const cleanSubject = subject.replace(/^(RE:|FW:|FWD:)\s*/i, '').trim();
+    const encodedSubject = encodeURIComponent(cleanSubject);
+    
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/me/messages?$filter=contains(subject, '${encodedSubject}')&$orderby=receivedDateTime desc&$top=10`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    const data = await response.json();
+    return data.value || [];
+    
+  } catch (error) {
+    console.error('Error searching emails by subject:', error);
+    return [];
+  }
+}
+```
+
+#### 3. Complete Conversation Analysis Function
+
+```typescript
+/**
+ * Analyze current email and its conversation thread
+ */
+async function analyzeConversationThread() {
+  try {
+    // Get current email info via Office.js
+    const currentItem = Office.context.mailbox.item;
+    
+    const currentEmailInfo = {
+      subject: currentItem.subject,
+      sender: currentItem.from?.emailAddress,
+      senderName: currentItem.from?.displayName,
+      conversationId: currentItem.conversationId
+    };
+    
+    // Get email body
+    const bodyResult = await new Promise<string>((resolve, reject) => {
+      currentItem.body.getAsync("text", (result) => {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          resolve(result.value);
+        } else {
+          reject(new Error(result.error?.message || "Failed to get email body"));
+        }
+      });
+    });
+    
+    // Extract first 20 words
+    const words = bodyResult.trim().split(/\s+/);
+    const first20Words = words.slice(0, 20).join(' ');
+    
+    currentEmailInfo.first20Words = first20Words + (words.length > 20 ? '...' : '');
+    currentEmailInfo.wordCount = words.length;
+    currentEmailInfo.charCount = bodyResult.length;
+    
+    // Get conversation thread emails via Graph API
+    let threadEmails: any[] = [];
+    
+    if (currentEmailInfo.conversationId) {
+      threadEmails = await getConversationEmails();
+    } else {
+      // Fallback to subject-based search
+      threadEmails = await getEmailsBySubject(currentEmailInfo.subject);
+    }
+    
+    return {
+      currentEmail: currentEmailInfo,
+      threadEmails: threadEmails.map(email => ({
+        id: email.id,
+        subject: email.subject,
+        sender: email.from?.emailAddress?.address,
+        senderName: email.from?.emailAddress?.name,
+        receivedDateTime: email.receivedDateTime,
+        bodyPreview: email.bodyPreview,
+        isRead: email.isRead,
+        hasAttachments: email.hasAttachments
+      })),
+      threadCount: threadEmails.length
+    };
+    
+  } catch (error) {
+    console.error('Error analyzing conversation thread:', error);
+    throw error;
+  }
+}
+```
+
+### 4. Display Conversation Thread in UI
+
+```typescript
+/**
+ * Display current email and conversation thread in the task pane
+ */
+async function displayEmailWithThread() {
+  try {
+    const analysis = await analyzeConversationThread();
+    const container = document.getElementById("item-subject");
+    
+    if (!container) return;
+    
+    container.innerHTML = "";
+    
+    // Display current email info
+    const currentEmailSection = document.createElement("div");
+    currentEmailSection.style.cssText = `
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    `;
+    
+    currentEmailSection.innerHTML = `
+      <h3>📧 Current Email</h3>
+      <p><strong>Subject:</strong> ${analysis.currentEmail.subject}</p>
+      <p><strong>From:</strong> ${analysis.currentEmail.senderName} &lt;${analysis.currentEmail.sender}&gt;</p>
+      <p><strong>First 20 words:</strong> ${analysis.currentEmail.first20Words}</p>
+      <p><strong>Stats:</strong> ${analysis.currentEmail.wordCount} words, ${analysis.currentEmail.charCount} characters</p>
+    `;
+    
+    container.appendChild(currentEmailSection);
+    
+    // Display conversation thread
+    if (analysis.threadEmails.length > 1) {
+      const threadSection = document.createElement("div");
+      threadSection.style.cssText = `
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      `;
+      
+      threadSection.innerHTML = `
+        <h3>💬 Conversation Thread (${analysis.threadCount} emails)</h3>
+        <div id="thread-emails"></div>
+      `;
+      
+      const threadContainer = threadSection.querySelector("#thread-emails");
+      
+      analysis.threadEmails.forEach((email, index) => {
+        const emailItem = document.createElement("div");
+        emailItem.style.cssText = `
+          border-left: 3px solid ${index === 0 ? '#007bff' : '#dee2e6'};
+          padding: 10px 15px;
+          margin: 10px 0;
+          background: ${index === 0 ? '#f8f9fa' : '#fff'};
+        `;
+        
+        emailItem.innerHTML = `
+          <div style="font-weight: bold; color: #495057;">
+            ${email.senderName || email.sender} 
+            ${index === 0 ? '(Current)' : ''}
+          </div>
+          <div style="font-size: 12px; color: #6c757d; margin: 5px 0;">
+            ${new Date(email.receivedDateTime).toLocaleDateString()} - 
+            ${email.isRead ? 'Read' : 'Unread'}${email.hasAttachments ? ' 📎' : ''}
+          </div>
+          <div style="font-size: 13px; color: #495057;">
+            ${email.bodyPreview || 'No preview available'}
+          </div>
+        `;
+        
+        threadContainer.appendChild(emailItem);
+      });
+      
+      container.appendChild(threadSection);
+    }
+    
+  } catch (error) {
+    console.error('Error displaying email with thread:', error);
+    showError('Failed to load conversation thread: ' + error.message);
+  }
+}
+```
+
+## 🔗 Microsoft Graph API Endpoints
+
+### Key Endpoints for Conversation Access
+
+```typescript
+// Get messages by conversation ID
+GET /me/messages?$filter=conversationId eq '{conversation-id}'
+
+// Get messages with specific ordering and limiting
+GET /me/messages?$filter=conversationId eq '{conversation-id}'&$orderby=receivedDateTime desc&$top=50
+
+// Search messages by subject
+GET /me/messages?$filter=contains(subject, '{subject-text}')&$orderby=receivedDateTime desc
+
+// Get conversation threads (alternative approach)
+GET /me/conversations/{conversation-id}/threads
+
+// Get message details with expanded properties
+GET /me/messages/{message-id}?$expand=attachments
+```
+
+### Required Graph API Permissions
+
+- `Mail.Read` - Read user's email
+- `Mail.ReadWrite` - Read and write user's email (if modifications needed)
+
+## 🚀 Integration Example
+
+Here's how to integrate this into your existing `run()` function:
+
+```typescript
+export async function run() {
+  // Check authentication first
+  if (!authService.isAuthenticated()) {
+    showError("Please sign in to analyze emails");
+    return;
+  }
+
+  try {
+    // Display current email and conversation thread
+    await displayEmailWithThread();
+    
+  } catch (error) {
+    console.error("Error in run():", error);
+    showError("Failed to analyze email: " + error.message);
+  }
+}
+```
+
+## 📝 Implementation Notes
+
+### Security Considerations
+- Always validate Graph API responses
+- Handle authentication failures gracefully
+- Implement proper error handling for network issues
+
+### Performance Tips
+- Cache conversation data when possible
+- Use `$top` parameter to limit result sets
+- Implement pagination for large conversations
+
+### Fallback Strategies
+- Use subject-based search if `conversationId` is unavailable
+- Gracefully degrade to current email only if Graph API fails
+- Provide clear user feedback about limitations
+
+## 🔮 Future Enhancements
+
+Microsoft may expand Office.js conversation capabilities in future updates. Monitor the [Office Add-ins roadmap](https://docs.microsoft.com/en-us/office/dev/add-ins/) for new features.
+
+## 📚 Additional Resources
+
+- [Microsoft Graph API Documentation](https://docs.microsoft.com/en-us/graph/)
+- [Office.js API Reference](https://docs.microsoft.com/en-us/javascript/api/office/)
+- [Outlook Add-ins Documentation](https://docs.microsoft.com/en-us/office/dev/add-ins/outlook/)
+- [Authentication in Office Add-ins](https://docs.microsoft.com/en-us/office/dev/add-ins/develop/auth-external-add-ins)
+
+---
+
+## Summary
+
+**Current State**: Office.js alone cannot access conversation threads  
+**Solution**: Combine Office.js + Microsoft Graph API  
+**Limitation**: Add-ins are designed around single-item interaction  
+**Workaround**: Use Graph API for comprehensive thread-level operations
