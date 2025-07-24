@@ -402,6 +402,40 @@ export async function run() {
   `;
   emailInfoContainer.appendChild(senderElement);
   
+  // Display To recipients
+  const toRecipientsElement = document.createElement("div");
+  if (item.to && item.to.length > 0) {
+    const toRecipients = item.to.map(recipient => 
+      `${recipient.displayName || recipient.emailAddress} &lt;${recipient.emailAddress}&gt;`
+    ).join('; ');
+    toRecipientsElement.innerHTML = `<strong>📨 To:</strong> ${toRecipients}`;
+  } else {
+    toRecipientsElement.innerHTML = `<strong>📨 To:</strong> No recipients`;
+  }
+  toRecipientsElement.style.cssText = `
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #666;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(toRecipientsElement);
+  
+  // Display CC recipients
+  const ccRecipientsElement = document.createElement("div");
+  if (item.cc && item.cc.length > 0) {
+    const ccRecipients = item.cc.map(recipient => 
+      `${recipient.displayName || recipient.emailAddress} &lt;${recipient.emailAddress}&gt;`
+    ).join('; ');
+    ccRecipientsElement.innerHTML = `<strong>📋 CC:</strong> ${ccRecipients}`;
+    ccRecipientsElement.style.cssText = `
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: #666;
+      word-wrap: break-word;
+    `;
+    emailInfoContainer.appendChild(ccRecipientsElement);
+  }
+  
   insertAt.appendChild(emailInfoContainer);
 
   // Get email body for display and summarization
@@ -587,6 +621,30 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
     word-wrap: break-word;
   `;
   emailInfoContainer.appendChild(senderElement);
+  
+  // Display To recipients (mock data for standalone)
+  const toRecipientsElement = document.createElement("div");
+  const mockToRecipients = "Amazon FBA Support Team &lt;fba-support@amazon.com&gt;; Sales Team &lt;sales@amazon.com&gt;";
+  toRecipientsElement.innerHTML = `<strong>📨 To:</strong> ${mockToRecipients}`;
+  toRecipientsElement.style.cssText = `
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #666;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(toRecipientsElement);
+  
+  // Display CC recipients (mock data for standalone)
+  const ccRecipientsElement = document.createElement("div");
+  const mockCCRecipients = "Business Partner &lt;partner@techgearsolutions.com&gt;; Accountant &lt;cpa@techgearsolutions.com&gt;";
+  ccRecipientsElement.innerHTML = `<strong>📋 CC:</strong> ${mockCCRecipients}`;
+  ccRecipientsElement.style.cssText = `
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #666;
+    word-wrap: break-word;
+  `;
+  emailInfoContainer.appendChild(ccRecipientsElement);
   
   insertAt.appendChild(emailInfoContainer);
 
