@@ -1092,13 +1092,37 @@ function initializeApiUI() {
   }
 
   // Analyze Email button
-  const analyzeEmailBtn = document.getElementById("analyze-email-btn");
+  const analyzeEmailBtn = document.getElementById("analyze-email-btn") as HTMLButtonElement;
   if (analyzeEmailBtn) {
     analyzeEmailBtn.onclick = async () => {
-      if (isInOfficeContext) {
-        await run();
-      } else {
-        await runStandalone();
+      console.log("📧 Analyze Email button clicked!");
+      console.log("🔍 isInOfficeContext:", isInOfficeContext);
+      
+      const buttonLabel = analyzeEmailBtn.querySelector('.ms-Button-label');
+      const originalText = buttonLabel ? buttonLabel.textContent : '📧 Analyze Current Email';
+      
+      try {
+        // Show loading state
+        if (buttonLabel) buttonLabel.textContent = '⏳ Analyzing...';
+        analyzeEmailBtn.disabled = true;
+        
+        if (isInOfficeContext) {
+          console.log("🏢 Running in Office context");
+          await run();
+        } else {
+          console.log("🌐 Running in standalone mode");
+          await runStandalone();
+        }
+        
+        console.log("✅ Email analysis completed");
+        
+      } catch (error) {
+        console.error("❌ Email analysis failed:", error);
+        showError(`Email analysis failed: ${error.message}`);
+      } finally {
+        // Reset button in both success and error cases
+        if (buttonLabel) buttonLabel.textContent = originalText;
+        analyzeEmailBtn.disabled = false;
       }
     };
   }
