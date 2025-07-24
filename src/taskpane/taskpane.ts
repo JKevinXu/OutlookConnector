@@ -1106,11 +1106,24 @@ function initializeApiUI() {
         if (buttonLabel) buttonLabel.textContent = '⏳ Analyzing...';
         analyzeEmailBtn.disabled = true;
         
-        if (isInOfficeContext) {
-          console.log("🏢 Running in Office context");
+        // Check Office context dynamically at runtime
+        const hasOfficeContext = typeof Office !== 'undefined' && 
+          Office.context && 
+          Office.context.mailbox && 
+          Office.context.mailbox.item;
+        
+        console.log("🔍 Dynamic Office check:");
+        console.log("  - Office available:", typeof Office !== 'undefined');
+        console.log("  - Office.context:", !!Office?.context);
+        console.log("  - Office.context.mailbox:", !!Office?.context?.mailbox);
+        console.log("  - Office.context.mailbox.item:", !!Office?.context?.mailbox?.item);
+        console.log("  - hasOfficeContext:", hasOfficeContext);
+        
+        if (hasOfficeContext) {
+          console.log("🏢 Running in Office context - reading real email");
           await run();
         } else {
-          console.log("🌐 Running in standalone mode");
+          console.log("🌐 Running in standalone mode - showing demo data");
           await runStandalone();
         }
         
@@ -1127,13 +1140,18 @@ function initializeApiUI() {
     };
   }
 
-  // Show appropriate status message
+  // Show appropriate status message with dynamic check
   const emailStatus = document.getElementById("email-status");
   if (emailStatus) {
-    if (isInOfficeContext) {
+    // Check Office context dynamically for status message
+    const hasOfficeAtInit = typeof Office !== 'undefined' && 
+      Office.context && 
+      Office.context.mailbox;
+    
+    if (hasOfficeAtInit) {
       emailStatus.innerHTML = "✅ Connected to Outlook - Click button to analyze the current email";
     } else {
-      emailStatus.innerHTML = "⚠️ Not in Outlook - Click button to see demo email with recipients";
+      emailStatus.innerHTML = "⚠️ Office context checking... Click button to analyze (will auto-detect context)";
     }
   }
 }
