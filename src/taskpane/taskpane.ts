@@ -343,9 +343,10 @@ async function initializeApp() {
   // Initialize API UI
   initializeApiUI();
   
-  if (isInOfficeContext) {
-    await run(); // Automatically analyze current email
-  }
+  // Don't automatically run - let user click the button
+  // if (isInOfficeContext) {
+  //   await run(); // Automatically analyze current email
+  // }
   
   console.log("✅ Application initialized");
 }
@@ -1088,6 +1089,28 @@ function initializeApiUI() {
   const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
   if (getSellerHistoryBtn) {
     getSellerHistoryBtn.onclick = handleGetSellerHistory;
+  }
+
+  // Analyze Email button
+  const analyzeEmailBtn = document.getElementById("analyze-email-btn");
+  if (analyzeEmailBtn) {
+    analyzeEmailBtn.onclick = async () => {
+      if (isInOfficeContext) {
+        await run();
+      } else {
+        await runStandalone();
+      }
+    };
+  }
+
+  // Show appropriate status message
+  const emailStatus = document.getElementById("email-status");
+  if (emailStatus) {
+    if (isInOfficeContext) {
+      emailStatus.innerHTML = "✅ Connected to Outlook - Click button to analyze the current email";
+    } else {
+      emailStatus.innerHTML = "⚠️ Not in Outlook - Click button to see demo email with recipients";
+    }
   }
 }
 

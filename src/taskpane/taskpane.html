@@ -172,6 +172,31 @@
             </div>
         </div>
 
+        <!-- Email Analysis Section -->
+        <div class="email-analysis-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>📧 Email Analysis</h3>
+            <button id="analyze-email-btn" class="ms-Button ms-Button--primary" style="
+                background: linear-gradient(135deg, #0078d4, #106ebe);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+                transition: all 0.2s ease;
+                min-width: 180px;
+                margin-bottom: 15px;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 120, 212, 0.4)'" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 120, 212, 0.3)'"
+               onmousedown="this.style.transform='translateY(0)'"
+               onmouseup="this.style.transform='translateY(-2px)'">
+                <span class="ms-Button-label">📧 Analyze Current Email</span>
+            </button>
+            <div id="email-status" style="font-size: 14px; color: #666; margin-top: 10px;"></div>
+        </div>
+
         <!-- Results container -->
         <div id="results-container" class="results-section">
             <div id="item-subject" class="email-info"></div>
