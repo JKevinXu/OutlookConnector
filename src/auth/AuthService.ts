@@ -75,6 +75,28 @@ export class AuthService {
     private setupEventHandlers(): void {
         this.userManager.events.addUserLoaded((user: User) => {
             console.log('🔓 User loaded:', user);
+            
+            // Log ID token details, remove before production
+            if (user.id_token) {
+                console.log('🎫 ID Token received:', user.id_token.substring(0, 50) + '...');
+                console.log('🎫 Full ID Token:', user.id_token);
+                
+                // Decode and log token payload
+                try {
+                    const tokenParts = user.id_token.split('.');
+                    if (tokenParts.length === 3) {
+                        const payload = JSON.parse(atob(tokenParts[1]));
+                        console.log('🎫 ID Token payload:', payload);
+                        console.log('🎫 Token expires at:', new Date(payload.exp * 1000).toISOString());
+                        console.log('🎫 Token issued at:', new Date(payload.iat * 1000).toISOString());
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to decode ID token:', error);
+                }
+            } else {
+                console.warn('⚠️ No ID token found in user object');
+            }
+            
             this.authState.isAuthenticated = true;
             this.authState.user = this.extractUserProfile(user);
             this.authState.isLoading = false;
@@ -143,6 +165,14 @@ export class AuthService {
                 this.authState.isAuthenticated = true;
                 this.authState.user = this.extractUserProfile(user);
                 console.log('✅ Existing user found:', this.authState.user);
+                
+                // Log existing ID token
+                if (user.id_token) {
+                    console.log('🎫 Init - Existing ID Token found:', user.id_token.substring(0, 50) + '...');
+                    console.log('🎫 Init - Full existing ID Token:', user.id_token);
+                } else {
+                    console.warn('⚠️ Init - Existing user has no ID token');
+                }
             }
         } catch (error) {
             console.error('❌ Initialization error:', error);
@@ -169,6 +199,14 @@ export class AuthService {
             console.log('🔄 Opening popup window...');
             const user = await this.userManager.signinPopup();
             console.log('✅ Popup login successful:', user);
+            
+            // Log ID token from login
+            if (user.id_token) {
+                console.log('🎫 Login - ID Token received:', user.id_token.substring(0, 50) + '...');
+                console.log('🎫 Login - Full ID Token:', user.id_token);
+            } else {
+                console.warn('⚠️ Login - No ID token in popup response');
+            }
             
             // Update auth state immediately after successful popup
             this.authState.isAuthenticated = true;
@@ -197,6 +235,14 @@ export class AuthService {
             console.log('🔄 Handling authentication callback...');
             const user = await this.userManager.signinPopupCallback();
             console.log('✅ Callback handled successfully:', user);
+            
+            // Log ID token from callback
+            if (user && user.id_token) {
+                console.log('🎫 Callback - ID Token received:', user.id_token.substring(0, 50) + '...');
+                console.log('🎫 Callback - Full ID Token:', user.id_token);
+            } else {
+                console.warn('⚠️ Callback - No ID token in callback response');
+            }
             
             // Clean up URL only if history API is available
             if (window.history && typeof window.history.replaceState === 'function') {
@@ -254,7 +300,15 @@ export class AuthService {
                 }
             }
             
-            return user?.id_token || null;
+            const idToken = user?.id_token || null;
+            if (idToken) {
+                console.log('🎫 getIdToken - Returning ID token:', idToken.substring(0, 50) + '...');
+                console.log('🎫 getIdToken - Full ID Token:', idToken);
+            } else {
+                console.warn('⚠️ getIdToken - No ID token available');
+            }
+            
+            return idToken;
         } catch (error) {
             console.error('❌ Error getting ID token:', error);
             return null;
