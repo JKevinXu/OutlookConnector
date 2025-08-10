@@ -8,6 +8,7 @@
 import { authService } from '../auth/AuthService';
 import { UserProfile } from '../types/auth';
 import { sellerHistoryService } from '../api/SellerHistoryService';
+import { bedrockAgentClient, BedrockAgentResponse } from '../api/BedrockAgentClient';
 
 // Check if we're running in Office context or standalone browser
 let isInOfficeContext = false;
@@ -701,55 +702,84 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
 }
 
 async function summarizeEmail(emailContent: string, container: HTMLElement) {
-  // Check authentication before processing
   if (!authService.isAuthenticated()) {
     showError("Please sign in to use AI summarization");
     return;
   }
 
-  // Show loading state
   let loadingMsg = document.createElement("p");
   loadingMsg.textContent = "🔄 Summarizing email with AI...";
   loadingMsg.id = "loading-msg";
   container.appendChild(loadingMsg);
 
   try {
-    // Get user info for personalized experience
     const user = await authService.getUser();
     const userContext = user ? `\nAnalyzing for user: ${user.name} (${user.email})` : "";
     
-    // Call OpenAI API (you'll need to add your API key)
-    const summary = await callLLMApi(emailContent + userContext);
+    const response = await bedrockAgentClient.invoke(
+      `Please analyze and summarize this email:\n\n${emailContent}${userContext}`
+    );
     
-    // Remove loading message
     const loading = document.getElementById("loading-msg");
     if (loading) loading.remove();
     
-    // Display summary
     let summaryContainer = document.createElement("div");
-    summaryContainer.style.border = "1px solid #ccc";
-    summaryContainer.style.padding = "10px";
-    summaryContainer.style.marginTop = "10px";
-    summaryContainer.style.backgroundColor = "#f9f9f9";
+    summaryContainer.style.cssText = `
+      border: 1px solid #0078d4;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 15px;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      box-shadow: 0 2px 8px rgba(0,120,212,0.1);
+    `;
     
     let summaryTitle = document.createElement("h3");
-    summaryTitle.textContent = "📝 AI Summary";
+    summaryTitle.textContent = "🤖 AI Analysis";
+    summaryTitle.style.cssText = `
+      margin: 0 0 15px 0;
+      color: #0078d4;
+      font-size: 18px;
+    `;
     summaryContainer.appendChild(summaryTitle);
     
-    let summaryText = document.createElement("p");
-    summaryText.textContent = summary;
+    let summaryText = document.createElement("div");
+    summaryText.innerHTML = response.response.replace(/\n/g, '<br>');
+    summaryText.style.cssText = `
+      line-height: 1.6;
+      font-size: 14px;
+      color: #333;
+    `;
     summaryContainer.appendChild(summaryText);
+
+    if (response.sessionId) {
+      let sessionInfo = document.createElement("div");
+      sessionInfo.textContent = `Session ID: ${response.sessionId}`;
+      sessionInfo.style.cssText = `
+        margin-top: 10px;
+        font-size: 12px;
+        color: #666;
+        font-family: monospace;
+      `;
+      summaryContainer.appendChild(sessionInfo);
+    }
     
     container.appendChild(summaryContainer);
     
   } catch (error) {
-    // Remove loading message
     const loading = document.getElementById("loading-msg");
     if (loading) loading.remove();
     
-    let errorMsg = document.createElement("p");
-    errorMsg.textContent = `❌ Error summarizing email: ${error.message}`;
-    errorMsg.style.color = "red";
+    let errorMsg = document.createElement("div");
+    errorMsg.innerHTML = `❌ <strong>Error summarizing email:</strong><br>${(error as Error).message}`;
+    errorMsg.style.cssText = `
+      color: #d32f2f;
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 10px;
+      font-size: 14px;
+    `;
     container.appendChild(errorMsg);
   }
 }
@@ -1228,21 +1258,12 @@ async function handleInvokeAgent() {
 
 async function invokeAgent(inputText: string): Promise<string> {
   try {
-    console.log("🔧 Calling AWS Bedrock Agent Runtime...");
+    console.log("🔧 Calling Bedrock Agent...");
     
-    // TODO: Initialize AWS Bedrock client with proper credentials
-    // const client = new BedrockAgentRuntimeClient({
-    //   region: "us-west-2",
-    //   credentials: // your AWS credentials
-    // });
-
-    const response = await client.invokeAgentRuntime({
-      agentRuntimeArn: "arn:aws:bedrock-agentcore:us-west-2:313117444016:runtime/agentcore_strands-fRvDuw6SOI",
-      qualifier: "<Endpoint Name>",
-      payload: inputText
-    });
-
-    return response.payload || "Agent response received but payload was empty.";
+    const response = await bedrockAgentClient.invoke(inputText);
+    console.log("✅ Bedrock agent response received:", response);
+    
+    return response.response || "Agent response received but no content.";
 
   } catch (error) {
     console.error("❌ Error calling Bedrock agent:", error);
