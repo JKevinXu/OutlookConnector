@@ -1091,6 +1091,12 @@ function initializeApiUI() {
     getSellerHistoryBtn.onclick = handleGetSellerHistory;
   }
 
+  // Invoke Agent button
+  const invokeAgentBtn = document.getElementById("invoke-agent-btn") as HTMLButtonElement;
+  if (invokeAgentBtn) {
+    invokeAgentBtn.onclick = handleInvokeAgent;
+  }
+
   // Analyze Email button
   const analyzeEmailBtn = document.getElementById("analyze-email-btn") as HTMLButtonElement;
   if (analyzeEmailBtn) {
@@ -1153,6 +1159,94 @@ function initializeApiUI() {
     } else {
       emailStatus.innerHTML = "⚠️ Office context checking... Click button to analyze (will auto-detect context)";
     }
+  }
+}
+
+async function handleInvokeAgent() {
+  try {
+    if (!authService.isAuthenticated()) {
+      showError("Please sign in first before invoking the agent.");
+      return;
+    }
+
+    const agentInput = document.getElementById("agent-input") as HTMLTextAreaElement;
+    const invokeAgentBtn = document.getElementById("invoke-agent-btn") as HTMLButtonElement;
+    const agentResults = document.getElementById("agent-results");
+    const agentResponse = document.getElementById("agent-response");
+
+    if (!agentInput || !agentResults || !agentResponse) {
+      showError("Required UI elements not found.");
+      return;
+    }
+
+    const inputText = agentInput.value.trim();
+    if (!inputText) {
+      showError("Please enter a message for the agent.");
+      return;
+    }
+
+    // Show loading state
+    const buttonLabel = invokeAgentBtn.querySelector('.ms-Button-label');
+    
+    if (buttonLabel) buttonLabel.textContent = '⏳ Invoking Agent...';
+    invokeAgentBtn.disabled = true;
+
+    console.log("🤖 Invoking agent with input:", inputText);
+    showInfo("Invoking AI agent...");
+
+    try {
+      // Call the agent invocation function
+      const response = await invokeAgent(inputText);
+      
+      console.log("✅ Agent invocation successful:", response);
+      showSuccess("Agent invocation completed successfully!");
+      
+      // Display the response
+      agentResponse.textContent = response;
+      agentResults.style.display = "block";
+
+    } catch (error) {
+      console.error("❌ Agent invocation failed:", error);
+      const errorMessage = (error as Error).message;
+      
+      showError(`Agent invocation failed: ${errorMessage}`);
+      agentResults.style.display = "none";
+    }
+
+  } catch (error) {
+    console.error("❌ Unexpected error in handleInvokeAgent:", error);
+    showError(`Unexpected error: ${(error as Error).message}`);
+  } finally {
+    // Reset button state
+    const invokeAgentBtn = document.getElementById("invoke-agent-btn") as HTMLButtonElement;
+    const buttonLabel = invokeAgentBtn?.querySelector('.ms-Button-label');
+    
+    if (buttonLabel) buttonLabel.textContent = '🤖 Invoke AI Agent';
+    if (invokeAgentBtn) invokeAgentBtn.disabled = false;
+  }
+}
+
+async function invokeAgent(inputText: string): Promise<string> {
+  try {
+    console.log("🔧 Calling AWS Bedrock Agent Runtime...");
+    
+    // TODO: Initialize AWS Bedrock client with proper credentials
+    // const client = new BedrockAgentRuntimeClient({
+    //   region: "us-west-2",
+    //   credentials: // your AWS credentials
+    // });
+
+    const response = await client.invokeAgentRuntime({
+      agentRuntimeArn: "arn:aws:bedrock-agentcore:us-west-2:313117444016:runtime/agentcore_strands-fRvDuw6SOI",
+      qualifier: "<Endpoint Name>",
+      payload: inputText
+    });
+
+    return response.payload || "Agent response received but payload was empty.";
+
+  } catch (error) {
+    console.error("❌ Error calling Bedrock agent:", error);
+    throw new Error(`Bedrock agent call failed: ${(error as Error).message}`);
   }
 }
 

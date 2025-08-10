@@ -197,6 +197,75 @@
             <div id="email-status" style="font-size: 14px; color: #666; margin-top: 10px;"></div>
         </div>
 
+        <!-- Agent Invocation Section -->
+        <div class="agent-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>🤖 AI Agent Assistant</h3>
+            
+            <div style="margin: 10px 0;">
+                <label for="agent-input" style="display: block; margin-bottom: 5px;"><strong>Message to Agent:</strong></label>
+                <textarea id="agent-input" placeholder="Hello, how can you assist me today?" 
+                          style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; resize: vertical; min-height: 80px;" rows="3"></textarea>
+            </div>
+
+            <div style="margin: 15px 0;">
+                <button id="invoke-agent-btn" class="ms-Button ms-Button--primary" style="
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+                    transition: all 0.2s ease;
+                    min-width: 180px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(255, 107, 107, 0.4)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(255, 107, 107, 0.3)'"
+                   onmousedown="this.style.transform='translateY(0)'"
+                   onmouseup="this.style.transform='translateY(-2px)'">
+                    <span class="ms-Button-label">🤖 Invoke AI Agent</span>
+            </button>
+            </div>
+
+            <div id="agent-results" style="display: none; margin-top: 15px;">
+                <!-- Agent Response Display -->
+                <div style="
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                    color: white;
+                    padding: 8px 15px;
+                    border-radius: 8px 8px 0 0;
+                    margin: 0 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 14px;
+                    font-weight: 600;
+                ">
+                    <span>🤖 Agent Response</span>
+                </div>
+
+                <!-- Agent Response Content -->
+                <div style="
+                    background: white;
+                    border: 1px solid #e1e5e9;
+                    border-top: none;
+                    border-radius: 0 0 8px 8px;
+                    margin: 0 8px 20px 8px;
+                    max-height: 400px;
+                    overflow-y: auto;
+                    padding: 15px;
+                ">
+                    <div id="agent-response" style="
+                        white-space: pre-wrap;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #495057;
+                    "></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Results container -->
         <div id="results-container" class="results-section">
             <div id="item-subject" class="email-info"></div>
