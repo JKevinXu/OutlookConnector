@@ -55,7 +55,7 @@ export class BedrockAgentClient {
   private apiKey?: string;
 
   constructor(baseUrl?: string, apiKey?: string) {
-    this.baseUrl = baseUrl || 'https://i03qauf1s6.execute-api.us-west-2.amazonaws.com/prod';
+    this.baseUrl = baseUrl || 'https://vhuxqurpo1.execute-api.us-west-2.amazonaws.com/prod';
     this.apiKey = apiKey;
   }
 
