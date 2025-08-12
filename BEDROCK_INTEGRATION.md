@@ -15,7 +15,7 @@ Successfully integrated AWS Bedrock Agent with the Outlook Connector add-in for 
 - **Error Handling**: Comprehensive user feedback and authentication flow
 
 ## API Details
-- **Endpoint**: `https://i03qauf1s6.execute-api.us-west-2.amazonaws.com/prod`
+- **Endpoint**: `https://vhuxqurpo1.execute-api.us-west-2.amazonaws.com/prod`
 - **Auth**: API key or Bearer token from AuthService
 - **Methods**: `/agent/invoke`, `/agent/health`, `/agent/sessions/{id}`
 
