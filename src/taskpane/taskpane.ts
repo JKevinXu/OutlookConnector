@@ -478,7 +478,7 @@ export async function run() {
         
         // Add summarize button
         const summarizeBtn = document.createElement("button");
-        summarizeBtn.textContent = "📝 Log Email Activity";
+        summarizeBtn.textContent = "📝 Log & Analyze Email";
         summarizeBtn.className = "ms-Button ms-Button--primary";
         summarizeBtn.style.cssText = `
           margin-bottom: 20px;
@@ -572,7 +572,7 @@ export async function runStandalone() {
   
   // Add a simple test button
   const testButton = document.createElement("button");
-  testButton.textContent = "📝 Test Email Logging";
+  testButton.textContent = "📝 Test Log & Analyze";
   testButton.className = "ms-Button ms-Button--primary";
   testButton.style.cssText = `
     margin-bottom: 20px;
@@ -905,17 +905,80 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
     console.log("📝 Activity Type:", emailData.activityType);
     console.log("📄 Email Preview:", emailContent.substring(0, 100) + "...");
 
+    // Update loading message for agent call
+    if (loadingMsg) {
+      loadingMsg.textContent = "🤖 Creating brief summary...";
+    }
+
+    // Call agent for brief email summary
+    let agentResponse = "";
+    try {
+      const summaryPrompt = `Create email activity with brief summary:
+
+Subject: ${emailData.subject}
+${emailData.dueDate ? `Due Date: ${emailData.dueDate}` : ''}
+
+Email Content:
+${emailContent}
+
+Provide only a brief summary of this email in 2-3 sentences.`;
+
+      console.log("🤖 Calling Bedrock Agent for brief summary...");
+      agentResponse = await invokeAgent(summaryPrompt);
+      console.log("✅ Agent summary completed");
+    } catch (error) {
+      console.error("⚠️ Agent summary failed:", error);
+      agentResponse = "Brief summary unavailable at the moment.";
+    }
+
     // Remove loading message
     const loading = document.getElementById("loading-msg");
     if (loading) loading.remove();
 
-    // Create activity log display
+    // Create main results container
+    let mainContainer = document.createElement("div");
+    mainContainer.style.cssText = `
+      margin-top: 15px;
+    `;
+
+    // Create AI analysis section
+    let aiContainer = document.createElement("div");
+    aiContainer.style.cssText = `
+      border: 1px solid #28a745;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #f8fff9;
+      box-shadow: 0 1px 4px rgba(40,167,69,0.1);
+    `;
+
+    let aiTitle = document.createElement("h4");
+    aiTitle.textContent = "📝 Brief Summary";
+    aiTitle.style.cssText = `
+      margin: 0 0 10px 0;
+      color: #28a745;
+      font-size: 16px;
+    `;
+    aiContainer.appendChild(aiTitle);
+
+    let aiResponse = document.createElement("div");
+    aiResponse.textContent = agentResponse;
+    aiResponse.style.cssText = `
+      color: #333;
+      line-height: 1.5;
+      font-size: 14px;
+      white-space: pre-wrap;
+    `;
+    aiContainer.appendChild(aiResponse);
+
+    mainContainer.appendChild(aiContainer);
+
+    // Create activity log section
     let logContainer = document.createElement("div");
     logContainer.style.cssText = `
       border: 1px solid #17a2b8;
       border-radius: 6px;
       padding: 15px;
-      margin-top: 15px;
       background: #f1f9ff;
       box-shadow: 0 1px 4px rgba(23,162,184,0.1);
     `;
@@ -935,7 +998,7 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
       <p style="margin: 5px 0; font-size: 13px;"><strong>User:</strong> ${emailData.user}</p>
       <p style="margin: 5px 0; font-size: 13px;"><strong>Email Stats:</strong> ${emailData.wordCount} words, ${emailData.emailLength} characters</p>
       ${emailData.dueDate ? `<p style="margin: 5px 0; font-size: 13px;"><strong>Due Date:</strong> ${emailData.dueDate}</p>` : ''}
-      <p style="margin: 5px 0; font-size: 13px;"><strong>Activity:</strong> Email activity successfully logged</p>
+      <p style="margin: 5px 0; font-size: 13px;"><strong>Activity:</strong> Email activity created with brief summary</p>
     `;
     logDetails.style.cssText = `
       color: #333;
@@ -943,12 +1006,13 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
     `;
     logContainer.appendChild(logDetails);
 
-    container.appendChild(logContainer);
+    mainContainer.appendChild(logContainer);
+    container.appendChild(mainContainer);
 
     // Show success banner
-    showBanner("Email activity logged successfully!", true);
+    showBanner("Email activity created with summary!", true);
 
-    console.log("✅ Email activity logging completed successfully");
+    console.log("✅ Email activity created with brief summary successfully");
 
   } catch (error) {
     // Remove loading message
