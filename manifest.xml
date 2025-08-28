@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+
+  <!-- Basic Add-in Information -->
+  <Id>95945cff-5a7d-490c-a979-d0b78f5257d7</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>AM Solutions</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  
+  <!-- Display Name -->
+  <DisplayName DefaultValue="AM Personal Assistant" />
+  
+  <!-- Description -->
+  <Description DefaultValue="AI-powered personal assistant for Amazon sellers with email analysis and comprehensive seller metrics to help Amazon merchants optimize their business operations." />
+  
+  <!-- Icon URLs -->
+  <IconUrl DefaultValue="https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png" />
+  
+  <!-- Support URL -->
+  <SupportUrl DefaultValue="https://www.amsolutions.com" />
+  
+  <!-- App Domains -->
+  <AppDomains>
+    <AppDomain>https://amsolutions.com</AppDomain>
+    <AppDomain>https://jkevinxu.github.io</AppDomain>
+    <AppDomain>https://bwzo9wnhy3.execute-api.us-west-2.amazonaws.com</AppDomain>
+  </AppDomains>
+  
+  <!-- Hosts -->
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  
+  <!-- Requirements -->
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.3" />
+    </Sets>
+  </Requirements>
+  
+  <!-- Form Settings -->
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://jkevinxu.github.io/OutlookConnector/taskpane.html" />
+        <RequestedHeight>450</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  
+  <!-- Permissions -->
+  <Permissions>ReadItem</Permissions>
+  
+  <!-- Rule -->
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
+  </Rule>
+  
+  <!-- Version Overrides -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    
+    <!-- Requirements -->
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.3">
+        <bt:Set Name="Mailbox" />
+      </bt:Sets>
+    </Requirements>
+    
+    <!-- Hosts -->
+    <Hosts>
+      <Host xsi:type="MailHost">
+        
+        <!-- Desktop Form Factor -->
+        <DesktopFormFactor>
+          
+          <!-- Function File -->
+          <FunctionFile resid="Commands.Url" />
+          
+          <!-- Extension Point -->
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            
+            <!-- Office Tab -->
+            <OfficeTab id="TabDefault">
+              
+              <!-- Group -->
+              <Group id="msgReadGroup">
+                <Label resid="GroupLabel" />
+                
+                <!-- Control -->
+                <Control xsi:type="Button" id="msgReadOpenPaneButton">
+                  <Label resid="TaskpaneButton.Label" />
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label" />
+                    <Description resid="TaskpaneButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+                
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    
+    <!-- Resources -->
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://jkevinxu.github.io/OutlookConnector/assets/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Commands.Url" DefaultValue="https://jkevinxu.github.io/OutlookConnector/commands.html" />
+        <bt:Url id="Taskpane.Url" DefaultValue="https://jkevinxu.github.io/OutlookConnector/taskpane.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="AM Personal Assistant" />
+        <bt:String id="TaskpaneButton.Label" DefaultValue="AM Personal Assistant" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="AI-powered personal assistant for Amazon sellers with email analysis and seller metrics." />
+      </bt:LongStrings>
+    </Resources>
+    
+  </VersionOverrides>
+  
+</OfficeApp> 

@@ -1,0 +1,158 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+    "id": "95945cff-5a7d-490c-a979-d0b78f5257d7",
+    "manifestVersion": "1.17",
+    "version": "1.0.0-beta",
+    "name": {
+        "short": "AM Personal Assistant (Beta)",
+        "full": "AM Personal Assistant - Beta Environment - Seller Metrics & Email Analysis"
+    },
+    "description": {
+        "short": "AI-powered personal assistant for Amazon sellers (Beta)",
+        "full": "AM Personal Assistant (Beta) provides AI-powered email analysis and comprehensive seller metrics to help Amazon merchants optimize their business operations. This is a beta version for testing purposes."
+    },
+    "developer": {
+        "name": "AM Solutions",
+        "websiteUrl": "https://www.amsolutions.com",
+        "privacyUrl": "https://www.amsolutions.com/privacy",
+        "termsOfUseUrl": "https://www.amsolutions.com/terms"
+    },
+    "icons": {
+        "outline": "assets/outline.png",
+        "color": "assets/color.png"
+    },
+    "accentColor": "#230201",
+    "localizationInfo": {
+        "defaultLanguageTag": "en-us",
+        "additionalLanguages": []
+    },
+    "authorization": {
+        "permissions": {
+            "resourceSpecific": [
+                {
+                    "name": "MailboxItem.Read.User",
+                    "type": "Delegated"
+                }
+            ]
+        }
+    },
+    "validDomains": [
+        "amsolutions.com",
+        "jkevinxu.github.io",
+        "bwzo9wnhy3.execute-api.us-west-2.amazonaws.com"
+    ],
+    "extensions": [
+        {
+            "requirements": {
+                "scopes": [
+                    "mail"
+                ],
+                "capabilities": [
+                    {
+                        "name": "Mailbox",
+                        "minVersion": "1.3"
+                    }
+                ]
+            },
+            "runtimes": [
+                {
+                    "requirements": {
+                        "capabilities": [
+                            {
+                                "name": "Mailbox",
+                                "minVersion": "1.3"
+                            }
+                        ]
+                    },
+                    "id": "TaskPaneRuntime",
+                    "type": "general",
+                    "code": {
+                        "page": "https://jkevinxu.github.io/OutlookConnector/taskpane.html"
+                    },
+                    "lifetime": "short",
+                    "actions": [
+                        {
+                            "id": "TaskPaneRuntimeShow",
+                            "type": "openPage",
+                            "pinnable": false,
+                            "view": "dashboard"
+                        }
+                    ]
+                },
+                {
+                    "id": "CommandsRuntime",
+                    "type": "general",
+                    "code": {
+                        "page": "https://jkevinxu.github.io/OutlookConnector/commands.html",
+                        "script": "https://jkevinxu.github.io/OutlookConnector/commands.js"
+                    },
+                    "lifetime": "short",
+                    "actions": [
+                        {
+                            "id": "action",
+                            "type": "executeFunction"
+                        }
+                    ]
+                }
+            ],
+            "ribbons": [
+                {
+                    "contexts": [
+                        "mailRead"
+                    ],
+                    "tabs": [
+                        {
+                            "builtInTabId": "TabDefault",
+                            "groups": [
+                                {
+                                    "id": "msgReadGroup",
+                                    "label": "AM Personal Assistant (Beta)",
+                                    "icons": [
+                                        {
+                                            "size": 16,
+                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-16.png"
+                                        },
+                                        {
+                                            "size": 32,
+                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png"
+                                        },
+                                        {
+                                            "size": 80,
+                                            "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png"
+                                        }
+                                    ],
+                                    "controls": [
+                                        {
+                                            "id": "msgReadOpenPaneButton",
+                                            "type": "button",
+                                            "label": "AM Personal Assistant (Beta)",
+                                            "icons": [
+                                                {
+                                                    "size": 16,
+                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-16.png"
+                                                },
+                                                {
+                                                    "size": 32,
+                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-32.png"
+                                                },
+                                                {
+                                                    "size": 80,
+                                                    "url": "https://jkevinxu.github.io/OutlookConnector/assets/icon-80.png"
+                                                }
+                                            ],
+                                            "supertip": {
+                                                "title": "AM Personal Assistant (Beta)",
+                                                "description": "AI-powered personal assistant for Amazon sellers with email analysis and seller metrics. Beta version for testing."
+                                            },
+                                            "actionId": "TaskPaneRuntimeShow"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+} 

@@ -478,7 +478,7 @@ export async function run() {
         
         // Add summarize button
         const summarizeBtn = document.createElement("button");
-        summarizeBtn.textContent = "🤖 Summarize with AI";
+        summarizeBtn.textContent = "📝 Get Simple Summary";
         summarizeBtn.className = "ms-Button ms-Button--primary";
         summarizeBtn.style.cssText = `
           margin-bottom: 20px;
@@ -681,7 +681,7 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
   
   // Add summarize button
   const summarizeBtn = document.createElement("button");
-  summarizeBtn.textContent = "🤖 Summarize with AI";
+  summarizeBtn.textContent = "📝 Get Simple Summary";
   summarizeBtn.className = "ms-Button ms-Button--primary";
   summarizeBtn.style.cssText = `
     margin-bottom: 20px;
@@ -707,80 +707,94 @@ async function summarizeEmail(emailContent: string, container: HTMLElement) {
     return;
   }
 
+  // Log email content for debugging
+  console.log("📧 Email Analysis Started");
+  console.log("📄 Email Content Length:", emailContent.length, "characters");
+  console.log("📄 Email Preview:", emailContent.substring(0, 200) + "...");
+  
+  const dueDate = getCurrentDueDate();
+  if (dueDate) {
+    console.log("📅 Due Date Set:", dueDate);
+  }
+
   let loadingMsg = document.createElement("p");
-  loadingMsg.textContent = "🔄 Summarizing email with AI...";
+  loadingMsg.textContent = "🔄 Getting simple summary...";
   loadingMsg.id = "loading-msg";
   container.appendChild(loadingMsg);
 
   try {
     const user = await authService.getUser();
-    const userContext = user ? `\nAnalyzing for user: ${user.name} (${user.email})` : "";
+    console.log("👤 User:", user?.name || "Unknown");
+    
+    const userContext = user ? `\nUser: ${user.name}` : "";
+    const dueDateContext = dueDate ? `\nDue Date: ${dueDate}` : "";
     
     const response = await bedrockAgentClient.invoke(
-      `Please analyze and summarize this email:\n\n${emailContent}${userContext}`
+      `Please provide a simple summary of this email:\n\n${emailContent}${userContext}${dueDateContext}\n\nKeep it brief and to the point.`
     );
     
     const loading = document.getElementById("loading-msg");
     if (loading) loading.remove();
     
+    // Simple summary display
     let summaryContainer = document.createElement("div");
     summaryContainer.style.cssText = `
-      border: 1px solid #0078d4;
-      border-radius: 8px;
-      padding: 20px;
+      border: 1px solid #28a745;
+      border-radius: 6px;
+      padding: 15px;
       margin-top: 15px;
-      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-      box-shadow: 0 2px 8px rgba(0,120,212,0.1);
+      background: #f8fff9;
+      box-shadow: 0 1px 4px rgba(40,167,69,0.1);
     `;
     
-    let summaryTitle = document.createElement("h3");
-    summaryTitle.textContent = "🤖 AI Analysis";
+    let summaryTitle = document.createElement("h4");
+    summaryTitle.textContent = "📝 Simple Summary";
     summaryTitle.style.cssText = `
-      margin: 0 0 15px 0;
-      color: #0078d4;
-      font-size: 18px;
+      margin: 0 0 10px 0;
+      color: #28a745;
+      font-size: 16px;
     `;
     summaryContainer.appendChild(summaryTitle);
     
-    let summaryText = document.createElement("div");
-    summaryText.innerHTML = response.response.replace(/\n/g, '<br>');
+    let summaryText = document.createElement("p");
+    summaryText.textContent = response.response;
     summaryText.style.cssText = `
-      line-height: 1.6;
+      margin: 0;
+      line-height: 1.5;
       font-size: 14px;
       color: #333;
     `;
     summaryContainer.appendChild(summaryText);
 
-    if (response.sessionId) {
-      let sessionInfo = document.createElement("div");
-      sessionInfo.textContent = `Session ID: ${response.sessionId}`;
-      sessionInfo.style.cssText = `
+    // Simple due date display if present
+    if (dueDate) {
+      let dueDateInfo = document.createElement("div");
+      dueDateInfo.textContent = `📅 Due: ${dueDate}`;
+      dueDateInfo.style.cssText = `
         margin-top: 10px;
+        padding: 5px 8px;
+        background: #fff3cd;
+        border-radius: 3px;
         font-size: 12px;
-        color: #666;
+        color: #856404;
         font-family: monospace;
       `;
-      summaryContainer.appendChild(sessionInfo);
+      summaryContainer.appendChild(dueDateInfo);
     }
     
     container.appendChild(summaryContainer);
+    
+    // Log success
+    console.log("✅ Email analysis completed successfully");
+    console.log("📊 Summary length:", response.response.length, "characters");
     
   } catch (error) {
     const loading = document.getElementById("loading-msg");
     if (loading) loading.remove();
     
-    let errorMsg = document.createElement("div");
-    errorMsg.innerHTML = `❌ <strong>Error summarizing email:</strong><br>${(error as Error).message}`;
-    errorMsg.style.cssText = `
-      color: #d32f2f;
-      background-color: #ffebee;
-      border: 1px solid #ffcdd2;
-      border-radius: 6px;
-      padding: 15px;
-      margin-top: 10px;
-      font-size: 14px;
-    `;
-    container.appendChild(errorMsg);
+    console.error("❌ Email summarization failed:", error);
+    console.error("❌ Error details:", error.message);
+    showError(`Email summarization failed: ${error.message}`);
   }
 }
 
@@ -1114,7 +1128,69 @@ function showReAuthenticationPrompt() {
   }, 30000);
 }
 
+// Global variable to store the current due date
+let currentDueDate: string | null = null;
+
+function initializeDueDateUI() {
+  const dueDateInput = document.getElementById("due-date-input") as HTMLInputElement;
+  const clearDueDateBtn = document.getElementById("clear-due-date-btn") as HTMLButtonElement;
+  const dueDateDisplay = document.getElementById("due-date-display") as HTMLDivElement;
+
+  if (!dueDateInput || !clearDueDateBtn || !dueDateDisplay) {
+    console.warn("Due date UI elements not found");
+    return;
+  }
+
+  // Function to format date to ISO 8601 format
+  function formatToISO8601(dateTimeLocalValue: string): string {
+    if (!dateTimeLocalValue) return "";
+    
+    // Create a Date object from the datetime-local input value
+    // Note: datetime-local returns format: YYYY-MM-DDTHH:mm
+    const date = new Date(dateTimeLocalValue);
+    
+    // Convert to ISO 8601 format with milliseconds and Z suffix
+    return date.toISOString();
+  }
+
+  // Function to update the display and global variable
+  function updateDueDateDisplay() {
+    const inputValue = dueDateInput.value;
+    if (inputValue) {
+      currentDueDate = formatToISO8601(inputValue);
+      dueDateDisplay.textContent = `📅 Due Date: ${currentDueDate}`;
+      dueDateDisplay.style.color = "#28a745";
+      dueDateDisplay.style.fontWeight = "600";
+    } else {
+      currentDueDate = null;
+      dueDateDisplay.textContent = "ISO 8601 format will appear here...";
+      dueDateDisplay.style.color = "#6c757d";
+      dueDateDisplay.style.fontWeight = "normal";
+    }
+  }
+
+  // Event listeners
+  dueDateInput.addEventListener("change", updateDueDateDisplay);
+  dueDateInput.addEventListener("input", updateDueDateDisplay);
+
+  clearDueDateBtn.addEventListener("click", () => {
+    dueDateInput.value = "";
+    updateDueDateDisplay();
+  });
+
+  // Initialize display
+  updateDueDateDisplay();
+}
+
+// Function to get current due date for use in email analysis
+function getCurrentDueDate(): string | null {
+  return currentDueDate;
+}
+
 function initializeApiUI() {
+  // Initialize due date functionality
+  initializeDueDateUI();
+
   // Get Seller Metrics button
   const getSellerHistoryBtn = document.getElementById("get-seller-history-btn");
   if (getSellerHistoryBtn) {

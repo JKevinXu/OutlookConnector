@@ -175,25 +175,18 @@ export class BedrockAgentClient {
     recipients: string[];
     body: string;
     ccRecipients?: string[];
+    dueDate?: string; // ISO 8601 format: 2026-11-13T20:20:39.321Z
   }, sessionId?: string): Promise<BedrockAgentResponse> {
     const emailContext = `
-Email Analysis Request:
+Please provide a simple summary of this email:
 
 Subject: ${emailData.subject}
-From: ${emailData.sender}
-To: ${emailData.recipients.join(', ')}
-${emailData.ccRecipients?.length ? `CC: ${emailData.ccRecipients.join(', ')}` : ''}
+${emailData.dueDate ? `Due Date: ${emailData.dueDate}` : ''}
 
 Email Content:
 ${emailData.body}
 
-Please analyze this email and provide:
-1. A concise summary of the key points
-2. Identified action items or requests
-3. Sentiment analysis
-4. Priority level assessment
-5. Suggested response approach
-`.trim();
+Please provide a brief summary in 2-3 sentences.`;
 
     return this.invoke(emailContext, sessionId, true);
   }

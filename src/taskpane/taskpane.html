@@ -175,6 +175,48 @@
         <!-- Email Analysis Section -->
         <div class="email-analysis-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
             <h3>📧 Email Analysis</h3>
+            
+            <!-- Due Date Setting -->
+            <div class="due-date-container" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px;">
+                <label for="due-date-input" style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057;">
+                    📅 Set Due Date (Optional):
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="datetime-local" id="due-date-input" style="
+                        padding: 8px 12px;
+                        border: 1px solid #ced4da;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        min-width: 200px;
+                        flex: 1;
+                    " />
+                    <button id="clear-due-date-btn" type="button" style="
+                        background: #6c757d;
+                        color: white;
+                        border: none;
+                        padding: 8px 12px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        cursor: pointer;
+                        transition: background 0.2s ease;
+                    " onmouseover="this.style.background='#5a6268'" 
+                       onmouseout="this.style.background='#6c757d'">
+                        🗑️ Clear
+                    </button>
+                </div>
+                <div id="due-date-display" style="
+                    margin-top: 8px;
+                    font-size: 12px;
+                    color: #6c757d;
+                    font-family: 'Courier New', monospace;
+                    background: #ffffff;
+                    padding: 6px 8px;
+                    border-radius: 3px;
+                    border: 1px solid #dee2e6;
+                    min-height: 18px;
+                ">ISO 8601 format will appear here...</div>
+            </div>
+            
             <button id="analyze-email-btn" class="ms-Button ms-Button--primary" style="
                 background: linear-gradient(135deg, #0078d4, #106ebe);
                 color: white;
