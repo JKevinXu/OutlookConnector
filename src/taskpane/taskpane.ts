@@ -533,7 +533,7 @@ export async function runStandalone() {
   
   // Check authentication first
   if (!authService.isAuthenticated()) {
-    showError("Please sign in to analyze emails");
+    showError("Please sign in to log email activity");
     return;
   }
   
@@ -549,387 +549,50 @@ export async function runStandalone() {
   insertAt.innerHTML = "";
   console.log("🧹 Cleared previous content");
   
-  // Mock email data
-  const mockEmailSubject = "I want to onboard FBA";
-  const mockSenderName = "Marcus Chen";
-  const mockSenderEmail = "marcus.chen@techgearsolutions.com";
-  const mockEmailBody = `Subject: I want to onboard FBA
-
-Dear Amazon FBA Support Team,
-
-I hope this email finds you well. My name is Marcus Chen, and I'm the founder of TechGear Solutions, an e-commerce business that has been successfully selling electronics and tech accessories through various online platforms for the past three years.
-
-I'm reaching out because I'm very interested in transitioning to Amazon's Fulfillment by Amazon (FBA) program to scale our operations and provide better customer service. After researching extensively, I believe FBA is the perfect solution for our growing business needs.
-
-Current Business Overview:
-Our company currently generates approximately $50,000 in monthly revenue selling items like wireless chargers, phone cases, laptop accessories, and smart home devices. We maintain inventory in a 2,000 sq ft warehouse in Phoenix, Arizona, and currently fulfill orders ourselves through multiple sales channels including our Shopify store, eBay, and other marketplaces.
-
-Why We Want FBA:
-The primary drivers for our FBA interest include accessing Amazon Prime customers, leveraging Amazon's world-class logistics network, reducing our fulfillment workload, and improving delivery speeds to customers nationwide. We're particularly excited about the potential for increased sales velocity through Prime eligibility and Amazon's trusted fulfillment reputation.
-
-Product Portfolio:
-We're looking to start with our top 15 SKUs, which represent about 80% of our current sales volume. These products range from $12 to $89 in retail price, with healthy profit margins that can accommodate FBA fees. Our products are primarily sourced from vetted suppliers in Taiwan and South Korea, with established quality control processes already in place.
-
-Current Challenges:
-We're currently struggling with shipping costs for individual orders, especially to customers on the East Coast. Our current 3-5 day shipping times are hurting our competitiveness, and we're spending too much time on fulfillment activities rather than focusing on product development and marketing growth strategies.
-
-Questions and Next Steps:
-I have several specific questions about the onboarding process. First, what's the typical timeline for FBA approval and first shipment acceptance? Second, can you provide guidance on optimal inventory planning for new FBA sellers? Third, what are the most common mistakes new FBA sellers make that we should avoid?
-
-Additionally, I'd like to understand the requirements for product photography, listing optimization, and any compliance considerations for electronics products in the FBA program.
-
-Investment Readiness:
-We have $75,000 allocated specifically for initial FBA inventory investment and are prepared to commit to a long-term partnership with Amazon. Our goal is to reach $200,000 in monthly FBA sales within the first year.
-
-I would greatly appreciate the opportunity to speak with someone from your team to discuss our FBA onboarding process. I'm available for a call any weekday between 9 AM and 5 PM PST.
-
-Thank you for your time and consideration. I look forward to hearing from you soon and beginning our FBA journey.
-
-Best regards,
-
-Marcus Chen
-Founder & CEO, TechGear Solutions
-Email: marcus.chen@techgearsolutions.com
-Phone: (602) 555-7892
-Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
-  
-  // Create email info container
-  const emailInfoContainer = document.createElement("div");
-  emailInfoContainer.style.cssText = `
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
+  // Display standalone mode message
+  const standaloneMessage = document.createElement("div");
+  standaloneMessage.style.cssText = `
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
+    text-align: center;
   `;
   
-  // Display email title
-  const titleElement = document.createElement("div");
-  titleElement.innerHTML = `<strong>📧 Subject:</strong> ${mockEmailSubject}`;
-  titleElement.style.cssText = `
-    font-size: 16px;
-    margin-bottom: 12px;
-    word-wrap: break-word;
+  standaloneMessage.innerHTML = `
+    <h3 style="margin: 0 0 15px 0; color: #856404;">🔧 Standalone Test Mode</h3>
+    <p style="margin: 0; color: #856404; font-size: 14px;">
+      This mode is for testing outside of Outlook.<br/>
+      In a real Outlook environment, the add-in would read actual email content.
+    </p>
   `;
-  emailInfoContainer.appendChild(titleElement);
   
-  // Display sender information  
-  const senderElement = document.createElement("div");
-  senderElement.innerHTML = `<strong>👤 From:</strong> ${mockSenderName} &lt;${mockSenderEmail}&gt;`;
-  senderElement.style.cssText = `
-    font-size: 14px;
-    margin-bottom: 15px;
-    color: #666;
-    word-wrap: break-word;
-  `;
-  emailInfoContainer.appendChild(senderElement);
+  insertAt.appendChild(standaloneMessage);
   
-  // Display To recipients (mock data for standalone)
-  const toRecipientsElement = document.createElement("div");
-  const mockToRecipients = "Amazon FBA Support Team &lt;fba-support@amazon.com&gt;; Sales Team &lt;sales@amazon.com&gt;";
-  toRecipientsElement.innerHTML = `<strong>📨 To:</strong> ${mockToRecipients}`;
-  toRecipientsElement.style.cssText = `
-    font-size: 14px;
-    margin-bottom: 15px;
-    color: #666;
-    word-wrap: break-word;
-  `;
-  emailInfoContainer.appendChild(toRecipientsElement);
-  
-  // Display CC recipients (mock data for standalone)
-  const ccRecipientsElement = document.createElement("div");
-  const mockCCRecipients = "Business Partner &lt;partner@techgearsolutions.com&gt;; Accountant &lt;cpa@techgearsolutions.com&gt;";
-  ccRecipientsElement.innerHTML = `<strong>📋 CC:</strong> ${mockCCRecipients}`;
-  ccRecipientsElement.style.cssText = `
-    font-size: 14px;
-    margin-bottom: 15px;
-    color: #666;
-    word-wrap: break-word;
-  `;
-  emailInfoContainer.appendChild(ccRecipientsElement);
-  
-  insertAt.appendChild(emailInfoContainer);
-
-  // Extract first 20 words from email body
-  const words = mockEmailBody.trim().split(/\s+/);
-  const first20Words = words.slice(0, 20).join(' ');
-  const hasMore = words.length > 20;
-  
-  // Display first 20 words
-  const previewElement = document.createElement("div");
-  previewElement.innerHTML = `<strong>📄 First 20 words:</strong><br/>${first20Words}${hasMore ? '...' : ''}`;
-  previewElement.style.cssText = `
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 15px;
-    font-style: italic;
-    line-height: 1.4;
-  `;
-  insertAt.appendChild(previewElement);
-
-  // Display email stats
-  const lengthInfo = document.createElement("div");
-  lengthInfo.innerHTML = `<strong>📊 Email Stats:</strong> ${words.length} words, ${mockEmailBody.length} characters`;
-  lengthInfo.style.cssText = `
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 20px;
-  `;
-  insertAt.appendChild(lengthInfo);
-  
-  // Add summarize button
-  const summarizeBtn = document.createElement("button");
-  summarizeBtn.textContent = "📝 Log Email Activity";
-  summarizeBtn.className = "ms-Button ms-Button--primary";
-  summarizeBtn.style.cssText = `
+  // Add a simple test button
+  const testButton = document.createElement("button");
+  testButton.textContent = "📝 Test Email Logging";
+  testButton.className = "ms-Button ms-Button--primary";
+  testButton.style.cssText = `
     margin-bottom: 20px;
     padding: 12px 24px;
     font-size: 14px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   `;
-  summarizeBtn.onclick = () => logEmailActivity(mockEmailBody, insertAt, null);
-  insertAt.appendChild(summarizeBtn);
   
-  // Add divider
-  const divider = document.createElement("hr");
-  divider.style.cssText = `
-    margin: 20px 0;
-    border: none;
-    border-top: 1px solid #dee2e6;
-  `;
-  insertAt.appendChild(divider);
+  testButton.onclick = () => {
+    showBanner("Standalone test mode - no email content to log", false);
+    console.log("📝 Standalone test mode - no real email data available");
+  };
+  
+  insertAt.appendChild(testButton);
 }
 
-async function summarizeEmail(emailContent: string, container: HTMLElement) {
-  if (!authService.isAuthenticated()) {
-    showError("Please sign in to use AI summarization");
-    return;
-  }
 
-  // Log email content for debugging
-  console.log("📧 Email Analysis Started");
-  console.log("📄 Email Content Length:", emailContent.length, "characters");
-  console.log("📄 Email Preview:", emailContent.substring(0, 200) + "...");
-  
-  const dueDate = getCurrentDueDate();
-  if (dueDate) {
-    console.log("📅 Due Date Set:", dueDate);
-  }
 
-  let loadingMsg = document.createElement("p");
-  loadingMsg.textContent = "🔄 Getting simple summary...";
-  loadingMsg.id = "loading-msg";
-  container.appendChild(loadingMsg);
-
-  try {
-    const user = await authService.getUser();
-    console.log("👤 User:", user?.name || "Unknown");
-    
-    const userContext = user ? `\nUser: ${user.name}` : "";
-    const dueDateContext = dueDate ? `\nDue Date: ${dueDate}` : "";
-    
-    const response = await bedrockAgentClient.invoke(
-      `Please provide a simple summary of this email:\n\n${emailContent}${userContext}${dueDateContext}\n\nKeep it brief and to the point.`
-    );
-    
-    const loading = document.getElementById("loading-msg");
-    if (loading) loading.remove();
-    
-    // Simple summary display
-    let summaryContainer = document.createElement("div");
-    summaryContainer.style.cssText = `
-      border: 1px solid #28a745;
-      border-radius: 6px;
-      padding: 15px;
-      margin-top: 15px;
-      background: #f8fff9;
-      box-shadow: 0 1px 4px rgba(40,167,69,0.1);
-    `;
-    
-    let summaryTitle = document.createElement("h4");
-    summaryTitle.textContent = "📝 Simple Summary";
-    summaryTitle.style.cssText = `
-      margin: 0 0 10px 0;
-      color: #28a745;
-      font-size: 16px;
-    `;
-    summaryContainer.appendChild(summaryTitle);
-    
-    let summaryText = document.createElement("p");
-    summaryText.textContent = response.response;
-    summaryText.style.cssText = `
-      margin: 0;
-      line-height: 1.5;
-      font-size: 14px;
-      color: #333;
-    `;
-    summaryContainer.appendChild(summaryText);
-
-    // Simple due date display if present
-    if (dueDate) {
-      let dueDateInfo = document.createElement("div");
-      dueDateInfo.textContent = `📅 Due: ${dueDate}`;
-      dueDateInfo.style.cssText = `
-        margin-top: 10px;
-        padding: 5px 8px;
-        background: #fff3cd;
-        border-radius: 3px;
-        font-size: 12px;
-        color: #856404;
-        font-family: monospace;
-      `;
-      summaryContainer.appendChild(dueDateInfo);
-    }
-    
-    container.appendChild(summaryContainer);
-    
-    // Log success
-    console.log("✅ Email analysis completed successfully");
-    console.log("📊 Summary length:", response.response.length, "characters");
-    
-  } catch (error) {
-    const loading = document.getElementById("loading-msg");
-    if (loading) loading.remove();
-    
-    console.error("❌ Email summarization failed:", error);
-    console.error("❌ Error details:", error.message);
-    showError(`Email summarization failed: ${error.message}`);
-  }
-}
-
-async function callLLMApi(emailContent: string): Promise<string> {
-  // Example using OpenAI API - you can replace with any LLM service
-  const API_KEY = "your-openai-api-key-here"; // You'll need to add this
-  const API_URL = "https://api.openai.com/v1/chat/completions";
-  
-  // For demo purposes, return a mock summary if no API key
-  if (!API_KEY || API_KEY === "your-openai-api-key-here") {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const user = await authService.getUser();
-    const userInfo = user ? `\n\n*Personalized for ${user.name}*` : "";
-    
-    return `🤖 **AI Summary** (Demo Mode):
-
-**Email Type:** FBA Onboarding Inquiry
-
-**Business Profile:**
-• Company: TechGear Solutions (Marcus Chen, Founder & CEO)
-• Current Revenue: $50,000/month selling electronics & tech accessories
-• Experience: 3 years in e-commerce across multiple platforms
-• Location: Phoenix, AZ (2,000 sq ft warehouse)
-
-**FBA Interest & Goals:**
-• Want to access Amazon Prime customers
-• Improve delivery speeds nationwide
-• Reduce fulfillment workload to focus on growth
-• Target: $200,000/month within first year
-
-**Product Portfolio:**
-• Starting with top 15 SKUs (80% of current sales)
-• Price range: $12-$89 with healthy margins
-• Electronics: chargers, cases, laptop accessories, smart home devices
-• Suppliers: Taiwan & South Korea with quality control
-
-**Key Questions:**
-• FBA approval timeline and first shipment process
-• Inventory planning guidance for new sellers
-• Common mistakes to avoid
-• Product photography & listing requirements
-• Electronics compliance considerations
-
-**Investment Ready:**
-• $75,000 allocated for initial FBA inventory
-• Available for calls: weekdays 9 AM-5 PM PST
-• Serious about long-term Amazon partnership
-
-**Next Steps:** Schedule consultation call to discuss onboarding process
-
-*To enable real AI analysis: Add your OpenAI/Claude/other LLM API key to the code*${userInfo}`;
-  }
-  
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant that summarizes emails concisely. Focus on key points, action items, and important information."
-        },
-        {
-          role: "user",
-          content: `Please summarize this email:\n\n${emailContent}`
-        }
-      ],
-      max_tokens: 200,
-      temperature: 0.3
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-// Alternative LLM APIs you can use:
-
-// Claude API example:
-/*
-async function callClaudeApi(emailContent: string): Promise<string> {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': 'your-claude-api-key',
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 200,
-      messages: [{
-        role: 'user',
-        content: `Summarize this email: ${emailContent}`
-      }]
-    })
-  });
-  
-  const data = await response.json();
-  return data.content[0].text;
-}
-*/
-
-// Azure OpenAI example:
-/*
-async function callAzureOpenAI(emailContent: string): Promise<string> {
-  const response = await fetch('https://your-resource.openai.azure.com/openai/deployments/your-model/chat/completions?api-version=2023-12-01-preview', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': 'your-azure-api-key'
-    },
-    body: JSON.stringify({
-      messages: [
-        { role: 'system', content: 'Summarize emails concisely.' },
-        { role: 'user', content: `Summarize: ${emailContent}` }
-      ],
-      max_tokens: 200
-    })
-  });
-  
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-*/
 
 async function displayUserIdentity() {
   const greetingContainer = document.getElementById("user-greeting-container");
@@ -966,41 +629,7 @@ async function displayUserIdentity() {
   }
 }
 
-// Helper function to copy text to clipboard
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).then(() => {
-    showSuccess("Copied to clipboard!");
-  }).catch(() => {
-    showError("Failed to copy to clipboard");
-  });
-}
 
-// Helper function to decode JWT token
-function decodeJWT(token: string): any {
-  try {
-    // Split the JWT into parts
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      throw new Error('Invalid JWT format');
-    }
-
-    // Decode the payload (second part)
-    const payload = parts[1];
-    // Add padding if needed for base64 decoding
-    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-    const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
-    
-    return JSON.parse(decodedPayload);
-  } catch (error) {
-    console.error('Failed to decode JWT:', error);
-    return null;
-  }
-}
-
-// Helper function to format timestamp
-function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp * 1000).toLocaleString();
-}
 
 // Helper function to show success messages
 function showSuccess(message: string) {
@@ -1256,7 +885,7 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
       user: user?.name || "Unknown User",
       emailLength: emailContent.length,
       wordCount: emailContent.trim().split(/\s+/).length,
-      subject: emailItem?.subject || "Demo Email Subject",
+      subject: emailItem?.subject || "No Subject",
       hasAttachments: emailItem?.attachments?.length > 0 || false,
       dueDate: dueDate,
       activityType: "email_logged"
@@ -1382,7 +1011,7 @@ function initializeApiUI() {
           console.log("🏢 Running in Office context - reading real email");
           await run();
         } else {
-          console.log("🌐 Running in standalone mode - showing demo data");
+          console.log("🌐 Running in standalone mode - no email data available");
           await runStandalone();
         }
         
