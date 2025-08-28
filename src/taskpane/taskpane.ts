@@ -888,6 +888,7 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
       subject: emailItem?.subject || "No Subject",
       hasAttachments: emailItem?.attachments?.length > 0 || false,
       dueDate: dueDate,
+      status: "WORK IN PROGRESS",
       activityType: "email_logged"
     };
 
@@ -899,6 +900,7 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
     console.log("📊 Email Length:", emailData.emailLength, "characters");
     console.log("📊 Word Count:", emailData.wordCount, "words");
     console.log("📎 Has Attachments:", emailData.hasAttachments);
+    console.log("🚧 Status:", emailData.status);
     if (emailData.dueDate) {
       console.log("📅 Due Date:", emailData.dueDate);
     }
@@ -921,7 +923,9 @@ ${emailData.dueDate ? `Due Date: ${emailData.dueDate}` : ''}
 Email Content:
 ${emailContent}
 
-Provide only a brief summary of this email in 2-3 sentences.`;
+Instructions:
+- Set status to WORK IN PROGRESS by default
+- Provide only a brief summary of this email in 2-3 sentences`;
 
       console.log("🤖 Calling Bedrock Agent for brief summary...");
       agentResponse = await invokeAgent(summaryPrompt);
@@ -996,6 +1000,7 @@ Provide only a brief summary of this email in 2-3 sentences.`;
     logDetails.innerHTML = `
       <p style="margin: 5px 0; font-size: 13px;"><strong>Timestamp:</strong> ${emailData.timestamp}</p>
       <p style="margin: 5px 0; font-size: 13px;"><strong>User:</strong> ${emailData.user}</p>
+      <p style="margin: 5px 0; font-size: 13px;"><strong>Status:</strong> <span style="color: #ffc107; font-weight: 600;">🚧 ${emailData.status}</span></p>
       <p style="margin: 5px 0; font-size: 13px;"><strong>Email Stats:</strong> ${emailData.wordCount} words, ${emailData.emailLength} characters</p>
       ${emailData.dueDate ? `<p style="margin: 5px 0; font-size: 13px;"><strong>Due Date:</strong> ${emailData.dueDate}</p>` : ''}
       <p style="margin: 5px 0; font-size: 13px;"><strong>Activity:</strong> Email activity created with brief summary</p>
