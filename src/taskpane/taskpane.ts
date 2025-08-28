@@ -478,14 +478,14 @@ export async function run() {
         
         // Add summarize button
         const summarizeBtn = document.createElement("button");
-        summarizeBtn.textContent = "📝 Get Simple Summary";
+        summarizeBtn.textContent = "📝 Log Email Activity";
         summarizeBtn.className = "ms-Button ms-Button--primary";
         summarizeBtn.style.cssText = `
           margin-bottom: 20px;
           padding: 12px 24px;
           font-size: 14px;
         `;
-        summarizeBtn.onclick = () => summarizeEmail(emailBody, insertAt);
+        summarizeBtn.onclick = () => logEmailActivity(emailBody, insertAt, item);
         insertAt.appendChild(summarizeBtn);
         
         // Add divider
@@ -681,14 +681,14 @@ Business Address: 1247 Industrial Blvd, Phoenix, AZ 85034`;
   
   // Add summarize button
   const summarizeBtn = document.createElement("button");
-  summarizeBtn.textContent = "📝 Get Simple Summary";
+  summarizeBtn.textContent = "📝 Log Email Activity";
   summarizeBtn.className = "ms-Button ms-Button--primary";
   summarizeBtn.style.cssText = `
     margin-bottom: 20px;
     padding: 12px 24px;
     font-size: 14px;
   `;
-  summarizeBtn.onclick = () => summarizeEmail(mockEmailBody, insertAt);
+  summarizeBtn.onclick = () => logEmailActivity(mockEmailBody, insertAt, null);
   insertAt.appendChild(summarizeBtn);
   
   // Add divider
@@ -1185,6 +1185,153 @@ function initializeDueDateUI() {
 // Function to get current due date for use in email analysis
 function getCurrentDueDate(): string | null {
   return currentDueDate;
+}
+
+// Function to show success/failure banners
+function showBanner(message: string, isSuccess: boolean = true) {
+  // Remove any existing banners
+  const existingBanner = document.getElementById("activity-banner");
+  if (existingBanner) {
+    existingBanner.remove();
+  }
+
+  const banner = document.createElement("div");
+  banner.id = "activity-banner";
+  banner.innerHTML = `<strong>${isSuccess ? '✅' : '❌'}</strong> ${message}`;
+  banner.style.cssText = `
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-width: 90%;
+    text-align: center;
+    animation: slideInFromTop 0.3s ease-out;
+    ${isSuccess ? 
+      'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;' : 
+      'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;'}
+  `;
+
+  document.body.appendChild(banner);
+
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (banner.parentNode) {
+      banner.style.animation = "slideOutToTop 0.3s ease-in";
+      setTimeout(() => {
+        if (banner.parentNode) {
+          banner.parentNode.removeChild(banner);
+        }
+      }, 300);
+    }
+  }, 5000);
+}
+
+// Function to log email activity instead of AI analysis
+async function logEmailActivity(emailContent: string, container: HTMLElement, emailItem: any) {
+  if (!authService.isAuthenticated()) {
+    showError("Please sign in to log email activity");
+    showBanner("Authentication required for email logging", false);
+    return;
+  }
+
+  // Show loading message
+  let loadingMsg = document.createElement("p");
+  loadingMsg.textContent = "📝 Logging email activity...";
+  loadingMsg.id = "loading-msg";
+  container.appendChild(loadingMsg);
+
+  try {
+    const user = await authService.getUser();
+    const dueDate = getCurrentDueDate();
+    
+    // Prepare email data for logging
+    const emailData = {
+      timestamp: new Date().toISOString(),
+      user: user?.name || "Unknown User",
+      emailLength: emailContent.length,
+      wordCount: emailContent.trim().split(/\s+/).length,
+      subject: emailItem?.subject || "Demo Email Subject",
+      hasAttachments: emailItem?.attachments?.length > 0 || false,
+      dueDate: dueDate,
+      activityType: "email_logged"
+    };
+
+    // Log to console (in a real app, this would go to a logging service)
+    console.log("📧 EMAIL ACTIVITY LOGGED:");
+    console.log("🕐 Timestamp:", emailData.timestamp);
+    console.log("👤 User:", emailData.user);
+    console.log("📄 Subject:", emailData.subject);
+    console.log("📊 Email Length:", emailData.emailLength, "characters");
+    console.log("📊 Word Count:", emailData.wordCount, "words");
+    console.log("📎 Has Attachments:", emailData.hasAttachments);
+    if (emailData.dueDate) {
+      console.log("📅 Due Date:", emailData.dueDate);
+    }
+    console.log("📝 Activity Type:", emailData.activityType);
+    console.log("📄 Email Preview:", emailContent.substring(0, 100) + "...");
+
+    // Remove loading message
+    const loading = document.getElementById("loading-msg");
+    if (loading) loading.remove();
+
+    // Create activity log display
+    let logContainer = document.createElement("div");
+    logContainer.style.cssText = `
+      border: 1px solid #17a2b8;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+      background: #f1f9ff;
+      box-shadow: 0 1px 4px rgba(23,162,184,0.1);
+    `;
+
+    let logTitle = document.createElement("h4");
+    logTitle.textContent = "📝 Activity Logged";
+    logTitle.style.cssText = `
+      margin: 0 0 10px 0;
+      color: #17a2b8;
+      font-size: 16px;
+    `;
+    logContainer.appendChild(logTitle);
+
+    let logDetails = document.createElement("div");
+    logDetails.innerHTML = `
+      <p style="margin: 5px 0; font-size: 13px;"><strong>Timestamp:</strong> ${emailData.timestamp}</p>
+      <p style="margin: 5px 0; font-size: 13px;"><strong>User:</strong> ${emailData.user}</p>
+      <p style="margin: 5px 0; font-size: 13px;"><strong>Email Stats:</strong> ${emailData.wordCount} words, ${emailData.emailLength} characters</p>
+      ${emailData.dueDate ? `<p style="margin: 5px 0; font-size: 13px;"><strong>Due Date:</strong> ${emailData.dueDate}</p>` : ''}
+      <p style="margin: 5px 0; font-size: 13px;"><strong>Activity:</strong> Email activity successfully logged</p>
+    `;
+    logDetails.style.cssText = `
+      color: #333;
+      line-height: 1.4;
+    `;
+    logContainer.appendChild(logDetails);
+
+    container.appendChild(logContainer);
+
+    // Show success banner
+    showBanner("Email activity logged successfully!", true);
+
+    console.log("✅ Email activity logging completed successfully");
+
+  } catch (error) {
+    // Remove loading message
+    const loading = document.getElementById("loading-msg");
+    if (loading) loading.remove();
+
+    console.error("❌ Email activity logging failed:", error);
+    console.error("❌ Error details:", error.message);
+    
+    showError(`Email activity logging failed: ${error.message}`);
+    showBanner("Failed to log email activity", false);
+  }
 }
 
 function initializeApiUI() {
