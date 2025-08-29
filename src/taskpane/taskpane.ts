@@ -476,17 +476,10 @@ export async function run() {
         `;
         insertAt.appendChild(lengthInfo);
         
-        // Add summarize button
-        const summarizeBtn = document.createElement("button");
-        summarizeBtn.textContent = "📝 Log & Analyze Email";
-        summarizeBtn.className = "ms-Button ms-Button--primary";
-        summarizeBtn.style.cssText = `
-          margin-bottom: 20px;
-          padding: 12px 24px;
-          font-size: 14px;
-        `;
-        summarizeBtn.onclick = () => logEmailActivity(emailBody, insertAt, item);
-        insertAt.appendChild(summarizeBtn);
+
+        
+        // Automatically trigger email logging and analysis
+        await logEmailActivity(emailBody, insertAt, item);
         
         // Add divider
         const divider = document.createElement("hr");
