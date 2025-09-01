@@ -26,6 +26,7 @@ module.exports = async (env, options) => {
     output: {
       clean: true,
       publicPath: publicPath,
+      filename: dev ? '[name].js' : '[name].[contenthash].js',
     },
     resolve: {
       extensions: [".ts", ".html", ".js"],
@@ -59,6 +60,8 @@ module.exports = async (env, options) => {
         template: "./src/taskpane/taskpane.html",
         chunks: ["polyfill", "taskpane"],
         publicPath: publicPath,
+        cache: false,
+        hash: true,
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -84,6 +87,8 @@ module.exports = async (env, options) => {
         template: "./src/commands/commands.html",
         chunks: ["polyfill", "commands"],
         publicPath: publicPath,
+        cache: false,
+        hash: true,
       }),
     ],
     devServer: {
