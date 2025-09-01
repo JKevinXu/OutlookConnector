@@ -53,125 +53,6 @@
             <!-- User greeting will be inserted here by JavaScript -->
         </div>
 
-        <!-- API Section -->
-        <div class="api-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-            <h3>📊 Seller Metrics</h3>
-            
-            <div style="margin: 10px 0; padding: 10px; background: #f0f9ff; border-left: 4px solid #0078d4; border-radius: 3px;">
-                <p style="margin: 0; font-size: 14px;"><strong>ℹ️ Merchant ID:</strong> 7489395755 (hardcoded)</p>
-            </div>
-
-            <div style="margin: 10px 0;">
-                <label for="marketplace-id" style="display: block; margin-bottom: 5px;"><strong>Marketplace ID (Optional):</strong></label>
-                <input type="text" id="marketplace-id" placeholder="e.g., A1VC38T7YXB528 (JP marketplace)" 
-                       style="width: 100%; padding: 5px; box-sizing: border-box;" />
-            </div>
-
-            <div style="margin: 15px 0;">
-                <button id="get-seller-history-btn" class="ms-Button ms-Button--primary" style="
-                    background: linear-gradient(135deg, #0078d4, #106ebe);
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
-                    transition: all 0.2s ease;
-                    min-width: 180px;
-                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 120, 212, 0.4)'" 
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 120, 212, 0.3)'"
-                   onmousedown="this.style.transform='translateY(0)'"
-                   onmouseup="this.style.transform='translateY(-2px)'">
-                    <span class="ms-Button-label">📈 Get Seller Metrics</span>
-            </button>
-            </div>
-
-            <div id="api-results" style="display: none; margin-top: 15px;">
-                <!-- Compact Header -->
-                <div style="
-                    background: linear-gradient(135deg, #0078d4, #106ebe);
-                    color: white;
-                    padding: 8px 15px;
-                    border-radius: 8px 8px 0 0;
-                    margin: 0 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    font-size: 14px;
-                    font-weight: 600;
-                ">
-                    <span>📊 Results</span>
-                </div>
-
-                <!-- Compact Content Container -->
-                <div style="
-                    background: white;
-                    border: 1px solid #e1e5e9;
-                    border-top: none;
-                    border-radius: 0 0 8px 8px;
-                    margin: 0 8px 20px 8px;
-                    max-height: 400px;
-                    overflow-y: auto;
-                ">
-                    <!-- Tab Navigation -->
-                    <div style="
-                        display: flex;
-                        border-bottom: 1px solid #e9ecef;
-                        background: #f8f9fa;
-                    ">
-                        <button id="metrics-tab" class="result-tab active" style="
-                            flex: 1;
-                            padding: 8px 12px;
-                            border: none;
-                            background: white;
-                            cursor: pointer;
-                            font-size: 12px;
-                            font-weight: 600;
-                            color: #0078d4;
-                            border-bottom: 2px solid #0078d4;
-                        ">📊 Key Metrics</button>
-                        <button id="raw-tab" class="result-tab" style="
-                            flex: 1;
-                            padding: 8px 12px;
-                            border: none;
-                            background: #f8f9fa;
-                            cursor: pointer;
-                            font-size: 12px;
-                            color: #6c757d;
-                            border-bottom: 2px solid transparent;
-                        ">🔍 Raw Data</button>
-                    </div>
-
-                    <!-- Tab Content -->
-                    <div style="padding: 12px;">
-                        <!-- Metrics Tab Content -->
-                        <div id="metrics-content" class="tab-content">
-                            <div id="results-metrics-display"></div>
-                        </div>
-
-                        <!-- Raw Tab Content -->
-                        <div id="raw-content" class="tab-content" style="display: none;">
-                            <pre id="api-output" style="
-                                white-space: pre-wrap;
-                                font-size: 10px;
-                                font-family: 'Courier New', monospace;
-                                margin: 0;
-                                color: #495057;
-                                line-height: 1.3;
-                                max-height: 250px;
-                                overflow: auto;
-                                background: #f8f9fa;
-                                padding: 10px;
-                                border-radius: 4px;
-                            "></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Email Analysis Section -->
         <div class="email-analysis-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
             <h3>📧 Email Analysis</h3>
@@ -311,6 +192,125 @@
         <!-- Results container -->
         <div id="results-container" class="results-section">
             <div id="item-subject" class="email-info"></div>
+        </div>
+
+        <!-- Seller Metrics Section - Moved to bottom -->
+        <div class="api-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>📊 Seller Metrics</h3>
+            
+            <div style="margin: 10px 0; padding: 10px; background: #f0f9ff; border-left: 4px solid #0078d4; border-radius: 3px;">
+                <p style="margin: 0; font-size: 14px;"><strong>ℹ️ Merchant ID:</strong> 7489395755 (hardcoded)</p>
+            </div>
+
+            <div style="margin: 10px 0;">
+                <label for="marketplace-id" style="display: block; margin-bottom: 5px;"><strong>Marketplace ID (Optional):</strong></label>
+                <input type="text" id="marketplace-id" placeholder="e.g., A1VC38T7YXB528 (JP marketplace)" 
+                       style="width: 100%; padding: 5px; box-sizing: border-box;" />
+            </div>
+
+            <div style="margin: 15px 0;">
+                <button id="get-seller-history-btn" class="ms-Button ms-Button--primary" style="
+                    background: linear-gradient(135deg, #0078d4, #106ebe);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+                    transition: all 0.2s ease;
+                    min-width: 180px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 120, 212, 0.4)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 120, 212, 0.3)'"
+                   onmousedown="this.style.transform='translateY(0)'"
+                   onmouseup="this.style.transform='translateY(-2px)'">
+                    <span class="ms-Button-label">📈 Get Seller Metrics</span>
+            </button>
+            </div>
+
+            <div id="api-results" style="display: none; margin-top: 15px;">
+                <!-- Compact Header -->
+                <div style="
+                    background: linear-gradient(135deg, #0078d4, #106ebe);
+                    color: white;
+                    padding: 8px 15px;
+                    border-radius: 8px 8px 0 0;
+                    margin: 0 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 14px;
+                    font-weight: 600;
+                ">
+                    <span>📊 Results</span>
+                </div>
+
+                <!-- Compact Content Container -->
+                <div style="
+                    background: white;
+                    border: 1px solid #e1e5e9;
+                    border-top: none;
+                    border-radius: 0 0 8px 8px;
+                    margin: 0 8px 20px 8px;
+                    max-height: 400px;
+                    overflow-y: auto;
+                ">
+                    <!-- Tab Navigation -->
+                    <div style="
+                        display: flex;
+                        border-bottom: 1px solid #e9ecef;
+                        background: #f8f9fa;
+                    ">
+                        <button id="metrics-tab" class="result-tab active" style="
+                            flex: 1;
+                            padding: 8px 12px;
+                            border: none;
+                            background: white;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: #0078d4;
+                            border-bottom: 2px solid #0078d4;
+                        ">📊 Key Metrics</button>
+                        <button id="raw-tab" class="result-tab" style="
+                            flex: 1;
+                            padding: 8px 12px;
+                            border: none;
+                            background: #f8f9fa;
+                            cursor: pointer;
+                            font-size: 12px;
+                            color: #6c757d;
+                            border-bottom: 2px solid transparent;
+                        ">🔍 Raw Data</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div style="padding: 12px;">
+                        <!-- Metrics Tab Content -->
+                        <div id="metrics-content" class="tab-content">
+                            <div id="results-metrics-display"></div>
+                        </div>
+
+                        <!-- Raw Tab Content -->
+                        <div id="raw-content" class="tab-content" style="display: none;">
+                            <pre id="api-output" style="
+                                white-space: pre-wrap;
+                                font-size: 10px;
+                                font-family: 'Courier New', monospace;
+                                margin: 0;
+                                color: #495057;
+                                line-height: 1.3;
+                                max-height: 250px;
+                                overflow: auto;
+                                background: #f8f9fa;
+                                padding: 10px;
+                                border-radius: 4px;
+                            "></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Debug panel for authenticated users -->
