@@ -908,17 +908,24 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
     // Call agent for brief email summary
     let agentResponse = "";
     try {
+      // Extract sender email for seller lookup
+      const senderEmail = emailItem?.from?.emailAddress || "";
+      
       const summaryPrompt = `Create email activity with brief summary:
 
 Subject: ${emailData.subject}
 ${emailData.dueDate ? `Due Date: ${emailData.dueDate}` : ''}
+${senderEmail ? `Sender Email: ${senderEmail}` : ''}
 
 Email Content:
 ${emailContent}
 
 Instructions:
 - Set status to WORK IN PROGRESS by default
-- Provide only a brief summary of this email in 2-3 sentences`;
+- FIRST: Call the seller lookup tool with contactType="EMAIL" and contactValue="${senderEmail}" to get the seller name
+- Include the seller name in the activity description (e.g., "Email activity from [Seller Name]:")
+- Provide only a brief summary of this email in 2-3 sentences
+- If seller lookup fails, proceed without seller name`;
 
       console.log("🤖 Calling Bedrock Agent for brief summary...");
       agentResponse = await invokeAgent(summaryPrompt);
