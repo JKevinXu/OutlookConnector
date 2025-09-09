@@ -901,9 +901,21 @@ async function logEmailActivity(emailContent: string, container: HTMLElement, em
     console.log("📝 Activity Type:", emailData.activityType);
     console.log("📄 Email Preview:", emailContent.substring(0, 100) + "...");
 
-    // Update loading message for agent call
+    // Create simple loading UI for Lambda call
     if (loadingMsg) {
-      loadingMsg.textContent = "🤖 Creating brief summary...";
+      loadingMsg.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 15px;">
+          <div class="loading-spinner" style="
+            width: 20px; 
+            height: 20px; 
+            border: 2px solid #e3e3e3; 
+            border-top: 2px solid #007acc; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite;
+          "></div>
+          <span>🤖 Processing...</span>
+        </div>
+      `;
     }
 
     // Call agent for brief email summary
@@ -1137,32 +1149,57 @@ async function handleInvokeAgent() {
       return;
     }
 
-    // Show loading state
+    // Show enhanced loading state
     const buttonLabel = invokeAgentBtn.querySelector('.ms-Button-label');
     
-    if (buttonLabel) buttonLabel.textContent = '⏳ Invoking Agent...';
+    if (buttonLabel) buttonLabel.textContent = '⏳ Invoking Lambda Agent...';
     invokeAgentBtn.disabled = true;
 
+    // Show simple loading in results area
+    agentResults.style.display = "block";
+    agentResponse.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; padding: 20px;">
+        <div class="loading-spinner" style="
+          width: 24px; 
+          height: 24px; 
+          border: 3px solid #e3e3e3; 
+          border-top: 3px solid #007acc; 
+          border-radius: 50%; 
+          animation: spin 1s linear infinite;
+        "></div>
+        <span>🤖 Processing...</span>
+      </div>
+    `;
+
     console.log("🤖 Invoking agent with input:", inputText);
-    showInfo("Invoking AI agent...");
+    showInfo("Invoking Lambda AI agent...");
 
     try {
       // Call the agent invocation function
       const response = await invokeAgent(inputText);
       
       console.log("✅ Agent invocation successful:", response);
-      showSuccess("Agent invocation completed successfully!");
+      showSuccess("Lambda Agent invocation completed successfully!");
       
-      // Display the response
-      agentResponse.textContent = response;
-      agentResults.style.display = "block";
+      // Display results
+      agentResponse.innerHTML = `
+        <div style="white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 15px; background: #f8fff9; border: 1px solid #28a745; border-radius: 6px; margin-top: 10px;">
+          ${response.replace(/\n/g, '<br>')}
+        </div>
+      `;
 
     } catch (error) {
       console.error("❌ Agent invocation failed:", error);
       const errorMessage = (error as Error).message;
       
-      showError(`Agent invocation failed: ${errorMessage}`);
-      agentResults.style.display = "none";
+      showError(`Lambda Agent invocation failed: ${errorMessage}`);
+      
+      // Show error in results area
+      agentResponse.innerHTML = `
+        <div style="padding: 15px; background: #fff5f5; border: 1px solid #f56565; border-radius: 6px; margin-top: 10px; color: #c53030;">
+          <strong>❌ Error:</strong> ${errorMessage}
+        </div>
+      `;
     }
 
   } catch (error) {
