@@ -9,6 +9,7 @@ import { authService } from '../auth/AuthService';
 import { UserProfile } from '../types/auth';
 import { sellerHistoryService } from '../api/SellerHistoryService';
 import { bedrockAgentClient, BedrockAgentResponse } from '../api/BedrockAgentClient';
+import { lambdaAgentClient, LambdaAgentResponse } from '../api/LambdaAgentClient';
 
 // Check if we're running in Office context or standalone browser
 let isInOfficeContext = false;
@@ -927,9 +928,9 @@ Instructions:
 - Provide only a brief summary of this email in 2-3 sentences
 - If seller lookup fails, proceed without seller name`;
 
-      console.log("🤖 Calling Bedrock Agent for brief summary...");
+      console.log("🤖 Calling Lambda Agent for brief summary...");
       agentResponse = await invokeAgent(summaryPrompt);
-      console.log("✅ Agent summary completed");
+      console.log("✅ Lambda Agent summary completed");
     } catch (error) {
       console.error("⚠️ Agent summary failed:", error);
       agentResponse = "Brief summary unavailable at the moment.";
@@ -1179,16 +1180,16 @@ async function handleInvokeAgent() {
 
 async function invokeAgent(inputText: string): Promise<string> {
   try {
-    console.log("🔧 Calling Bedrock Agent...");
+    console.log("🔧 Calling Lambda Agent...");
     
-    const response = await bedrockAgentClient.invoke(inputText);
-    console.log("✅ Bedrock agent response received:", response);
+    const response = await lambdaAgentClient.invoke(inputText);
+    console.log("✅ Lambda agent response received:", response);
     
     return response.response || "Agent response received but no content.";
 
   } catch (error) {
-    console.error("❌ Error calling Bedrock agent:", error);
-    throw new Error(`Bedrock agent call failed: ${(error as Error).message}`);
+    console.error("❌ Error calling Lambda agent:", error);
+    throw new Error(`Lambda agent call failed: ${(error as Error).message}`);
   }
 }
 
