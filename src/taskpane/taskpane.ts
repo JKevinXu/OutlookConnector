@@ -10,6 +10,7 @@ import { UserProfile } from '../types/auth';
 import { sellerHistoryService } from '../api/SellerHistoryService';
 import { bedrockAgentClient, BedrockAgentResponse } from '../api/BedrockAgentClient';
 import { lambdaAgentClient, LambdaAgentResponse } from '../api/LambdaAgentClient';
+import { bedrockAgentCoreClient } from '../api/BedrockAgentCoreClient';
 
 // Check if we're running in Office context or standalone browser
 let isInOfficeContext = false;
@@ -940,9 +941,9 @@ Instructions:
 - Provide only a brief summary of this email in 2-3 sentences
 - If seller lookup fails, proceed without seller name`;
 
-      console.log("🤖 Calling Lambda Agent for brief summary...");
+      console.log("🤖 Calling Bedrock Agent Core for brief summary...");
       agentResponse = await invokeAgent(summaryPrompt);
-      console.log("✅ Lambda Agent summary completed");
+      console.log("✅ Bedrock Agent Core summary completed");
     } catch (error) {
       console.error("⚠️ Agent summary failed:", error);
       agentResponse = "Brief summary unavailable at the moment.";
@@ -1152,7 +1153,7 @@ async function handleInvokeAgent() {
     // Show enhanced loading state
     const buttonLabel = invokeAgentBtn.querySelector('.ms-Button-label');
     
-    if (buttonLabel) buttonLabel.textContent = '⏳ Invoking Lambda Agent...';
+    if (buttonLabel) buttonLabel.textContent = '⏳ Invoking Bedrock Agent...';
     invokeAgentBtn.disabled = true;
 
     // Show simple loading in results area
@@ -1172,14 +1173,14 @@ async function handleInvokeAgent() {
     `;
 
     console.log("🤖 Invoking agent with input:", inputText);
-    showInfo("Invoking Lambda AI agent...");
+    showInfo("Invoking Bedrock Agent Core...");
 
     try {
       // Call the agent invocation function
       const response = await invokeAgent(inputText);
       
       console.log("✅ Agent invocation successful:", response);
-      showSuccess("Lambda Agent invocation completed successfully!");
+      showSuccess("Bedrock Agent Core invocation completed successfully!");
       
       // Display results
       agentResponse.innerHTML = `
@@ -1192,7 +1193,7 @@ async function handleInvokeAgent() {
       console.error("❌ Agent invocation failed:", error);
       const errorMessage = (error as Error).message;
       
-      showError(`Lambda Agent invocation failed: ${errorMessage}`);
+      showError(`Bedrock Agent Core invocation failed: ${errorMessage}`);
       
       // Show error in results area
       agentResponse.innerHTML = `
@@ -1217,16 +1218,16 @@ async function handleInvokeAgent() {
 
 async function invokeAgent(inputText: string): Promise<string> {
   try {
-    console.log("🔧 Calling Lambda Agent...");
+    console.log("🔧 Calling Bedrock Agent Core...");
     
-    const response = await lambdaAgentClient.invoke(inputText);
-    console.log("✅ Lambda agent response received:", response);
+    const response = await bedrockAgentCoreClient.invoke(inputText);
+    console.log("✅ Bedrock Agent Core response received:", response);
     
     return response.response || "Agent response received but no content.";
 
   } catch (error) {
-    console.error("❌ Error calling Lambda agent:", error);
-    throw new Error(`Lambda agent call failed: ${(error as Error).message}`);
+    console.error("❌ Error calling Bedrock Agent Core:", error);
+    throw new Error(`Bedrock Agent Core call failed: ${(error as Error).message}`);
   }
 }
 
