@@ -22,7 +22,7 @@ export class BedrockAgentCoreClient {
   private awsRegion: string;
 
   constructor(agentArn?: string, awsRegion?: string) {
-    this.agentArn = agentArn || 'arn:aws:bedrock-agentcore:us-west-2:313117444016:runtime/agent_handler-MjzZZ55Om5';
+    this.agentArn = agentArn || 'arn:aws:bedrock-agentcore:us-west-2:925509123747:runtime/amc_pa_strands_beta-MItdGrBq0E';
     this.awsRegion = awsRegion || 'us-west-2';
     
     // Bedrock Agent Core HTTP endpoint format
